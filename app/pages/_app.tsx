@@ -1,11 +1,17 @@
+import EditorLayoutContextProvider from "@/contexts/EditorLayoutContext";
 import ExplorerContextProvider from "@/contexts/ExplorerContext";
 import "@/styles/globals.css";
+import { SessionProvider } from "next-auth/react";
 import type { AppProps } from "next/app";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <ExplorerContextProvider>
-      <Component {...pageProps} />
-    </ExplorerContextProvider>
+    <SessionProvider>
+    <EditorLayoutContextProvider>
+      <ExplorerContextProvider>
+        <Component {...pageProps} />
+      </ExplorerContextProvider>
+    </EditorLayoutContextProvider>
+    </SessionProvider>
   );
 }

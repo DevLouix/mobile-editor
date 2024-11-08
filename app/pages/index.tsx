@@ -1,7 +1,7 @@
 import CodeBox from "@/components/editor/Codebox";
 import Explorer from "@/components/editor/explorer";
 import OpenFiles from "@/components/editor/OpenFiles";
-import NavBar from "@/components/NavBar/Index";
+import NavBar from "@/components/SideBar/Index";
 import { Box } from "@mui/material";
 import { TreeItem } from "@nosferatu500/react-sortable-tree";
 import React from "react";

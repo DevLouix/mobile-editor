@@ -3,6 +3,7 @@ import { IconButton, MenuItem, Menu } from "@mui/material";
 import React from "react";
 import File from "./Items/File";
 import Edit from "./Items/Edit";
+import GitRepository from "./Items/GitRepo/Index"
 
 function MenuButton() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -45,6 +46,7 @@ function MenuButton() {
         <MenuItem>
           <Edit />
         </MenuItem>
+        <MenuItem><GitRepository/></MenuItem>
         <MenuItem onClick={handleClose}>Terminal</MenuItem>
       </Menu>
     </div>

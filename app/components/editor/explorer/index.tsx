@@ -3,8 +3,10 @@ import React from "react";
 import ToolBar from "./ToolBar";
 import { flexRowBetween } from "@/styles/main";
 import FileBrowser from "./FileBrowser";
+import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
 
 function Explorer() {
+  const { editorOnlyView, setEditorOnlyView } = useEditorLayoutContext();
   return (
     <Box
       sx={{
@@ -13,6 +15,7 @@ function Explorer() {
         backgroundColor: "black",
         color: "grey",
         overflowY: "auto",
+        display: editorOnlyView ? "none" : "block",
       }}
     >
       <Box>
