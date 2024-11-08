@@ -35,7 +35,6 @@ function SideBar() {
       ) : (
         ""
       )}
-      <Repositories/>
       <SideBarToggleBtn />
     </>
   );

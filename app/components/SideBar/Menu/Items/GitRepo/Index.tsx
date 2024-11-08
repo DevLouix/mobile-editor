@@ -5,10 +5,15 @@ import MenuItem from "@mui/material/MenuItem";
 import { Box, Typography } from "@mui/material";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
+import { useRouter } from "next/router";
+import { useModal } from "@/contexts/ModalContext";
+import GitAuthView from "./AuthView";
+import Repositories from "./RepoView";
 
 export default function GitRepository() {
   const { data: session } = useSession();
   const { setShowRepoView } = useEditorLayoutContext();
+  const {openModal} = useModal()
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -28,37 +33,16 @@ export default function GitRepository() {
         aria-expanded={open ? "true" : undefined}
         variant="body2"
         fontWeight="bold"
+        onClick={() => {   
+          handleClose();  
+          !session ? openModal(<GitAuthView/>): openModal(<Repositories/>);
+            
+          }}
         // onClick={handleClick}
         // onMouseLeave={handleClose}
       >
         Import Repository
       </Typography>
-      <Menu
-        id="demo-positioned-menu"
-        aria-labelledby="demo-positioned-button"
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        anchorOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "left",
-        }}
-      >
-        <MenuItem
-          onClick={() => {
-            !session ? signIn("github") : setShowRepoView(true);
-            handleClose();
-          }}
-        >
-          Github
-        </MenuItem>
-        <MenuItem onClick={handleClose}>Gitlab</MenuItem>
-        <MenuItem onClick={handleClose}>GitBucket</MenuItem>
-      </Menu>
     </Box>
   );
 }

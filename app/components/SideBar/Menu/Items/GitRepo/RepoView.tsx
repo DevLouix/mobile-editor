@@ -1,10 +1,10 @@
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
-import { AddBox } from "@mui/icons-material";
-import { Box } from "@mui/material";
+import { AddBox, Code } from "@mui/icons-material";
+import { Box, List, ListItem, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 
 const Repositories: React.FC = () => {
-    const {showRepoView} = useEditorLayoutContext()
+  const { showRepoView } = useEditorLayoutContext();
   const [repos, setRepos] = useState([]);
 
   useEffect(() => {
@@ -17,20 +17,17 @@ const Repositories: React.FC = () => {
   }, []);
 
   return (
-    <>
-    {showRepoView ?
-    <Box sx={{
-      position:"absolute",
-      left : 50,
-      right:50
-    }}>
+    <Box sx={{}}>
       <h2>Your Repositories:</h2>
-      <ul>
+      <List>
         {repos.map((repo: any) => (
-          <li key={repo.id}>{repo.name}</li>
+          <ListItem >
+            <Code sx={{p:1}}/>
+            <Box key={repo.id}><Typography fontWeight={'bold'}>{repo.name}</Typography></Box>
+          </ListItem>
         ))}
-      </ul>
-    </Box>:""}</>
+      </List>
+    </Box>
   );
 };
 
