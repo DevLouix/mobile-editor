@@ -3,9 +3,13 @@ import { IconButton, MenuItem, Menu } from "@mui/material";
 import React from "react";
 import File from "./Items/File";
 import Edit from "./Items/Edit";
-import GitRepository from "./Items/GitRepo/Index"
+import GitRepository from "./Items/GitRepo/Index";
+import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
+import Close from "./Items/Close";
+import LocalStorage from "./Items/LocalStorage";
 
 function MenuButton() {
+  const { editorInUse } = useEditorLayoutContext();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -40,14 +44,28 @@ function MenuButton() {
           "aria-labelledby": "basic-button",
         }}
       >
-        <MenuItem >
-          <File />
-        </MenuItem>
-        <MenuItem>
-          <Edit />
-        </MenuItem>
-        <MenuItem><GitRepository/></MenuItem>
-        <MenuItem onClick={handleClose}>Terminal</MenuItem>
+        {!editorInUse ? (
+          <>
+          <MenuItem><LocalStorage/></MenuItem>
+          <MenuItem onClick={handleClose}>
+            <GitRepository />
+          </MenuItem>
+         </>
+        ) : (
+          <>
+            <MenuItem onClick={handleClose}>
+              <File />
+            </MenuItem>
+            <MenuItem onClick={handleClose}>
+              <Edit />
+            </MenuItem>
+
+            <MenuItem onClick={handleClose}>Terminal</MenuItem>
+            <MenuItem onClick={handleClose}>
+              <Close />
+            </MenuItem>
+          </>
+        )}
       </Menu>
     </div>
   );

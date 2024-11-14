@@ -10,6 +10,8 @@ import React, {
 interface EditorLayoutContextType {
   editorOnlyView: boolean;
   setEditorOnlyView: Dispatch<SetStateAction<boolean>>;
+  editorInUse: boolean;
+  setEditorInUse: Dispatch<SetStateAction<boolean>>;
   showRepoView: boolean;
   showSideBar: boolean;
   setShowSideBar: Dispatch<SetStateAction<boolean>>;
@@ -26,12 +28,13 @@ export const EditorLayoutContextProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const [editorOnlyView, setEditorOnlyView] = useState(false);
+  const [editorInUse, setEditorInUse] = useState(false);
   const [showRepoView, setShowRepoView] = useState(false);
   const [showSideBar, setShowSideBar] = useState(true);
 
   return (
     <EditorLayoutContext.Provider
-      value={{ editorOnlyView, setEditorOnlyView, showSideBar, setShowSideBar,showRepoView, setShowRepoView  }}
+      value={{ editorOnlyView, setEditorOnlyView,editorInUse,setEditorInUse, showSideBar, setShowSideBar,showRepoView, setShowRepoView  }}
     >
       {children}
     </EditorLayoutContext.Provider >

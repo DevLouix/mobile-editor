@@ -8,12 +8,13 @@ import type { AppProps } from "next/app";
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <SessionProvider>
+      {" "}
       <EditorLayoutContextProvider>
-        <ModalProvider>
-          <ExplorerContextProvider>
+        <ExplorerContextProvider>
+          <ModalProvider>
             <Component {...pageProps} />
-          </ExplorerContextProvider>
-        </ModalProvider>
+          </ModalProvider>
+        </ExplorerContextProvider>
       </EditorLayoutContextProvider>
     </SessionProvider>
   );

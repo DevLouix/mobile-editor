@@ -7,11 +7,11 @@ import Folder from "./Folder";
 import File from "./File";
 
 const FileBrowser = () => {
-  const { files } = useExplorerContext();
+  const { rootDir } = useExplorerContext();
 
   return (
     <List>
-      {files.map((file: FileItem) => (
+      {rootDir.map((file: FileItem) => (
         <>
           {file.isDirectory ? (
             <Folder files={[file]} />

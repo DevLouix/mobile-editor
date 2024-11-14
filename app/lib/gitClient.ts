@@ -1,25 +1,16 @@
 // lib/gitClient.ts
 import FS from "@isomorphic-git/lightning-fs";
+import axios from "axios";
 import git from "isomorphic-git";
 import http from "isomorphic-git/http/web";
-git
-  .getRemoteInfo({
-    http,
-    url: "https://github.com/isomorphic-git/isomorphic-git",
-  })
-  .then(console.log);
 
-const fs = new FS();
+let fs = new FS('fs');
+const pfs = fs.promises
 
 export async function cloneRepo(repoUrl: string, dir: string) {
-  return await git.clone({
-    fs,
-    http,
-    dir,
-    url: repoUrl,
-    singleBranch: true,
-    depth: 1,
-  });
+  const res = await axios.post("api/github/clone",{repoUrl:repoUrl, dir: dir})
+  console.log(res);
+  return res
 }
 
 export async function createFile(
