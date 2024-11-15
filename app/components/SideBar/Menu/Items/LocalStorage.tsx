@@ -1,93 +1,82 @@
-import React, { useState } from 'react';
+import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
+import { useExplorerContext } from "@/contexts/ExplorerContext";
+import { Typography } from "@mui/material";
+import React, { useEffect, useRef, useState } from "react";
+
+declare module "react" {
+  interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
+    // extends React's HTMLAttributes
+    directory?: any; // remember to make these attributes optional....
+    webkitdirectory?: any;
+  }
+}
 
 const LocalStorage = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [fileContent, setFileContent] = useState('');
-  const [directoryStructure, setDirectoryStructure] = useState([]);
+  const {setRootDir} = useExplorerContext()
+  const {setSessionType,setSessionDir} = useEditorLayoutContext()
+  const [fileList, setFileList] = useState([]);
+  const openFile = useRef(null);
 
-  // Function to read a single file
-  const handleFileSelect = async () => {
-    try {
-      const [fileHandle] = await window.showOpenFilePicker();
-      const file = await fileHandle.getFile();
-      const content = await file.text();
-      setSelectedFile(file.name);
-      setFileContent(content);
-    } catch (error) {
-      console.error('Error reading file:', error);
-    }
+  // Function to handle file selection
+  const handleFileSelect = (event) => {
+    const files = Array.from(event.target.files);
+    setFileList(files);
   };
 
-  // Recursive function to read directory structure
-  const getDirectoryStructure = async (dirHandle, path = '') => {
-    const structure = [];
-    for await (const entry of dirHandle.values()) {
-      const entryPath = `${path}/${entry.name}`;
-      if (entry.kind === 'file') {
-        structure.push({ name: entry.name, path: entryPath, isDirectory: false });
-      } else if (entry.kind === 'directory') {
-        structure.push({
-          name: entry.name,
-          path: entryPath,
-          isDirectory: true,
-          children: await getDirectoryStructure(entry, entryPath),
-        });
+  // Function to send files to Next.js API route
+  const handleUpload = async () => {
+    const formData = new FormData();
+    fileList.forEach((file) => formData.append("files", file));
+
+    try {
+      const response = await fetch("/api/uploadFiles", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const res = await response.json();
+        console.log("Upload successful:", res);
+        setRootDir(res.dir)
+        setSessionType('local')
+        setSessionDir(res.dirPath)
+      } else {
+        console.error("Upload failed");
       }
-    }
-    return structure;
-  };
-
-  // Function to read the selected directory
-  const handleDirectorySelect = async () => {
-    try {
-      const dirHandle = await window.showDirectoryPicker();
-      const structure = await getDirectoryStructure(dirHandle);
-      setDirectoryStructure(structure);
-      setSelectedFile(null);
-      setFileContent('');
     } catch (error) {
-      console.error('Error reading directory:', error);
+      console.error("Error uploading files:", error);
     }
   };
 
-  // Render directory structure
-  const renderDirectory = (nodes) => (
-    <ul>
-      {nodes.map((node) => (
-        <li key={node.path}>
-          {node.isDirectory ? (
-            <>
-              <strong>{node.name}</strong>
-              {node.children && renderDirectory(node.children)}
-            </>
-          ) : (
-            <span>{node.name}</span>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
+  useEffect(()=>{
+    if (fileList.length>0) {
+      handleUpload()
+    }
+  },[fileList])
 
   return (
     <div>
-      <h2>File System Reader</h2>
-      <button onClick={handleFileSelect}>Select File</button>
-      <button onClick={handleDirectorySelect}>Select Folder</button>
+      <Typography
+        variant="body2"
+        fontWeight="bold"
+        onClick={() => {
+          openFile.current.click();
+        }}
+      >
+        Open File
+      </Typography>
 
-      {selectedFile && (
-        <div>
-          <h3>Selected File: {selectedFile}</h3>
-          <pre>{fileContent}</pre>
-        </div>
-      )}
+      <input
+        onChange={handleFileSelect}
+        hidden
+        directory
+        webkitdirectory
+        multiple
+        type="file"
+        ref={openFile}
+      />
 
-      {directoryStructure.length > 0 && (
-        <div>
-          <h3>Directory Structure:</h3>
-          {renderDirectory(directoryStructure)}
-        </div>
-      )}
-    </div>
+     </div>
   );
 };
 

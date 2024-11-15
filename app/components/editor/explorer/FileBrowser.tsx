@@ -11,10 +11,10 @@ const FileBrowser = () => {
 
   return (
     <List>
-      {rootDir.map((file: FileItem) => (
+      {rootDir?.map((file: FileItem,index) => (
         <>
           {file.isDirectory ? (
-            <Folder files={[file]} />
+            <Folder key={index} files={[file]} />
           ) : (
             <File file={file}/>
           )}

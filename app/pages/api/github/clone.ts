@@ -41,7 +41,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const repoDir = getDirectoryStructure(_dir);
     res
       .status(200)
-      .json({ message: "Repository cloned successfully", dir, repoDir });
+      .json({ message: "Repository cloned successfully", dir, repoDir,dirPath:_dir });
   } catch (error: any) {
     console.error("Error cloning repository:", error);
     res.status(500).json({ error: error.message });

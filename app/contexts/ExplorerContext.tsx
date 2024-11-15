@@ -18,6 +18,10 @@ interface DirItem {
 interface ExplorerContextType {
   files: DirItem[];
   setFiles: Dispatch<SetStateAction<DirItem[]>>;
+  fileContent: any;
+  setFileContent: Dispatch<SetStateAction<any>>;
+  activeFileIndex: number;
+  setActiveFileIndex: Dispatch<SetStateAction<number>>;
   rootDir: DirItem[];
   setRootDir: Dispatch<SetStateAction<DirItem[]>>;
   fetchFiles: (dirPath?: string) => Promise<void>;
@@ -33,9 +37,12 @@ const ExplorerContext = createContext<ExplorerContextType | undefined>(
 export const ExplorerContextProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { setEditorInUse, setShowRepoView } = useEditorLayoutContext();
+  const { setEditorInUse, setShowRepoView, setOpenFiles, openFiles } =
+    useEditorLayoutContext();
   const [rootDir, setRootDir] = useState<DirItem[]>([]);
   const [files, setFiles] = useState<DirItem[]>([]);
+  const [fileContent, setFileContent] = useState("");
+  const [activeFileIndex, setActiveFileIndex] = useState(0);
 
   // Fetch files from the server
   const fetchFiles = async (dirPath?: string) => {
@@ -67,14 +74,19 @@ export const ExplorerContextProvider: React.FC<{
   };
 
   useEffect(() => {
-    if (rootDir.length > 0) {
+    if (rootDir?.length > 0) {
       setEditorInUse(true);
-      setShowRepoView(false)
+      setShowRepoView(false);
     } else {
+      setOpenFiles([]);
       setEditorInUse(false);
-      setShowRepoView(true)
+      setShowRepoView(true);
     }
   }, [rootDir]);
+
+  useEffect(() => {
+    openFiles ? setFileContent(openFiles[activeFileIndex].content) : "";
+  }, [activeFileIndex]);
 
   return (
     <ExplorerContext.Provider
@@ -83,6 +95,10 @@ export const ExplorerContextProvider: React.FC<{
         setRootDir,
         files,
         setFiles,
+        fileContent,
+        setFileContent,
+        activeFileIndex,
+        setActiveFileIndex,
         fetchFiles,
         createDirectory,
       }}

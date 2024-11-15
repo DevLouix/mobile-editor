@@ -7,7 +7,7 @@ import { cloneRepo } from "@/lib/gitClient";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
 
 const Repositories: React.FC = () => {
-  const { showRepoView } = useEditorLayoutContext();
+  const { showRepoView, setSessionType, setSessionDir} = useEditorLayoutContext();
   const { setRootDir } = useExplorerContext();
   const [repos, setRepos] = useState([]);
   const [repoUrl, setRepoUrl] = useState<string | null>(null);
@@ -26,6 +26,8 @@ const Repositories: React.FC = () => {
     const res = await cloneRepo(repo.html_url, repo.name);
     if (res.status == 200) {
       setRootDir(res.data.repoDir);
+      setSessionType('git')
+      setSessionDir(res.data.dirPath)
     }
   }
 

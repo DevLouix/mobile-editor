@@ -20,7 +20,7 @@ export default async function handler(
   try {
     if (action === "read") {
       // Read file content
-      const fileContent = fs.readFileSync(fullPath, "utf8");
+      const fileContent = fs.readFileSync(filePath, "utf8");
       res.status(200).json({ content: fileContent });
     } else if (action === "write") {
       // Write new content to the file
@@ -29,15 +29,24 @@ export default async function handler(
     } else if (action === "clearDir") {
       const clearDirectory = (dirPath: string) => {
         if (fs.existsSync(dirPath)) {
-          fs.readdirSync(dirPath).forEach((file) => {
-            const currentPath = path.join(dirPath, file);
-            if (fs.statSync(currentPath).isDirectory()) {
-              clearDirectory(currentPath); // Recursively clear subdirectories
-              fs.rmdirSync(currentPath); // Remove the empty directory
+          // Read the contents of the directory
+          const files = fs.readdirSync(dirPath);
+
+          // Loop through each file/directory in the directory
+          files.forEach((file) => {
+            const filePath = path.join(dirPath, file);
+            // Check if it's a directory or file
+            if (fs.statSync(filePath).isDirectory()) {
+              // If it's a directory, recursively call clearDirectory
+              clearDirectory(filePath);
             } else {
-              fs.unlinkSync(currentPath); // Delete the file
+              // If it's a file, remove it
+              fs.unlinkSync(filePath);
             }
           });
+
+          // Finally, remove the now-empty directory
+          fs.rmdirSync(dirPath);
         }
       };
       try {
@@ -51,6 +60,6 @@ export default async function handler(
       res.status(400).json({ error: "Invalid action" });
     }
   } catch (error: any) {
-    res.status(500).json({ error:error.message });
+    res.status(500).json({ error: error.message });
   }
 }
