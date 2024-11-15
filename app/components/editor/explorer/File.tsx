@@ -1,4 +1,5 @@
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
+import { useExplorerContext } from "@/contexts/ExplorerContext";
 import { FileItem } from "@/types/main";
 import { FileCopy } from "@mui/icons-material";
 import { List, ListItem, Typography } from "@mui/material";
@@ -7,6 +8,7 @@ import React from "react";
 
 const File = ({ file }: { file: FileItem }) => {
   const { openFiles, setOpenFiles } = useEditorLayoutContext();
+  const {setActiveFileIndex}=useExplorerContext()
 
   return (
     <ListItem
@@ -34,6 +36,9 @@ const File = ({ file }: { file: FileItem }) => {
             if (!fileExists) {
               // If file does not exist, add it
               setOpenFiles((prevFiles) => [...prevFiles!, file]);
+            }else{
+              // sets the selected file active cause its been opened prevly
+              setActiveFileIndex(openFiles.indexOf(file))
             }
           } else {
             // If openFiles is empty, just add the file

@@ -7,6 +7,7 @@ import React, {
   SetStateAction,
 } from "react";
 import { useEditorLayoutContext } from "./EditorLayoutContext";
+import { validate } from "uuid";
 
 // Define the shape of the context
 interface DirItem {
@@ -14,12 +15,17 @@ interface DirItem {
   isDirectory: boolean;
   path: string;
 }
+interface FileContent {
+  name: string;
+  language: string;
+  value: any;
+}
 
 interface ExplorerContextType {
   files: DirItem[];
   setFiles: Dispatch<SetStateAction<DirItem[]>>;
-  fileContent: any;
-  setFileContent: Dispatch<SetStateAction<any>>;
+  fileContent: FileContent;
+  setFileContent: Dispatch<SetStateAction<FileContent>>;
   activeFileIndex: number;
   setActiveFileIndex: Dispatch<SetStateAction<number>>;
   rootDir: DirItem[];
@@ -41,7 +47,9 @@ export const ExplorerContextProvider: React.FC<{
     useEditorLayoutContext();
   const [rootDir, setRootDir] = useState<DirItem[]>([]);
   const [files, setFiles] = useState<DirItem[]>([]);
-  const [fileContent, setFileContent] = useState("");
+  const [fileContent, setFileContent] = useState<FileContent>(
+    {} as unknown as FileContent
+  );
   const [activeFileIndex, setActiveFileIndex] = useState(0);
 
   // Fetch files from the server
@@ -84,9 +92,22 @@ export const ExplorerContextProvider: React.FC<{
     }
   }, [rootDir]);
 
+  // toggle the selected file active in the ed
   useEffect(() => {
-    openFiles ? setFileContent(openFiles[activeFileIndex].content) : "";
-  }, [activeFileIndex]);
+    setActiveFileIndex(openFiles?.length! - 1);
+  }, [openFiles]);
+
+  // reads and loads the content
+  useEffect(() => {
+    const file = openFiles![activeFileIndex];
+    openFiles
+      ? setFileContent({
+          name: file?.name,
+          value: file?.content,
+          language: getFileLang(file?.name),
+        })
+      : "";
+  }, [activeFileIndex, fileContent]);
 
   return (
     <ExplorerContext.Provider
@@ -120,3 +141,49 @@ export const useExplorerContext = (): ExplorerContextType => {
 };
 
 export default ExplorerContextProvider;
+function getFileLang(name: string): string {
+  // Extract the file extension from the name
+  const extension = name?.split('.').pop()?.toLowerCase();  // Get extension, normalize to lowercase
+  
+  // Map file extensions to language names or file types
+  const languageMap: Record<string, string> = {
+    js: 'javascript',
+    ts: 'typescript',
+    jsx: 'javascript',
+    tsx: 'typescript',
+    html: 'html',
+    css: 'css',
+    scss: 'sass/scss',
+    less: 'less',
+    java: 'java',
+    py: 'python',
+    rb: 'ruby',
+    php: 'php',
+    go: 'go',
+    c: 'c',
+    cpp: 'c++',
+    rust: 'rust',
+    swift: 'swift',
+    kotlin: 'kotlin',
+    sql: 'sql',
+    md: 'markdown',
+    json: 'json',
+    yaml: 'yaml',
+    xml: 'xml',
+    txt: 'plain text',
+    csv: 'csv',
+    exe: 'executable',
+    pdf: 'pdf',
+    png: 'png image',
+    jpg: 'jpg image',
+    gif: 'gif image',
+    mp4: 'mp4 video',
+    mp3: 'mp3 audio',
+    // Add more file extensions as needed...
+  };
+
+  // Return the corresponding language or file type in lowercase
+  return extension ? languageMap[extension] || 'unknown' : 'unknown';
+}
+
+
