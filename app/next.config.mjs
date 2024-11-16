@@ -2,10 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
+    // This allows production builds to complete even with ESLint errors
     ignoreDuringBuilds: true,
   },
 };
 
+// Export the modified config using removeImports
 export default nextConfig;

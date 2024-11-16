@@ -25,6 +25,8 @@ const Repositories: React.FC = () => {
     //await fetchRepoUrl(repo.owner.name,repo.name)
     const res = await cloneRepo(repo.html_url, repo.name);
     if (res.status == 200) {
+      //console.log(res);
+      
       setRootDir(res.data.repoDir);
       setSessionType('git')
       setSessionDir(res.data.dirPath)

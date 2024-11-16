@@ -25,14 +25,22 @@
     "busboy": "^1.6.0",
     "capacitor-file-picker": "^1.0.10",
     "cordova-plugin-filechooser": "^1.2.0",
+    "css-loader": "^7.1.2",
     "formidable": "^3.5.1",
     "fs": "^0.0.1-security",
+    "install": "^0.13.0",
     "isomorphic-git": "^1.27.1",
+    "monaco-editor": "^0.52.0",
+    "monaco-editor-webpack-plugin": "^7.1.0",
+    "monaco-types": "^0.1.0",
     "multer": "^1.4.5-lts.1",
     "next": "14.2.13",
     "next-auth": "^4.24.10",
+    "next-remove-imports": "^1.0.12",
+    "npm": "^10.9.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "style-loader": "^4.0.0"
   },
   "devDependencies": {
     "@types/formidable": "^3.4.5",

@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { useEditorLayoutContext } from "./EditorLayoutContext";
 import { validate } from "uuid";
+import { buildVFSTree }from "@/lib/vfsBuild";
 
 // Define the shape of the context
 interface DirItem {
@@ -22,6 +23,8 @@ interface FileContent {
 }
 
 interface ExplorerContextType {
+  VFS: any[];
+  setVFS: Dispatch<SetStateAction<any[]>>;
   files: DirItem[];
   setFiles: Dispatch<SetStateAction<DirItem[]>>;
   fileContent: FileContent;
@@ -46,6 +49,8 @@ export const ExplorerContextProvider: React.FC<{
   const { setEditorInUse, setShowRepoView, setOpenFiles, openFiles } =
     useEditorLayoutContext();
   const [rootDir, setRootDir] = useState<DirItem[]>([]);
+  const [VFS, setVFS] = useState<any[]>([]);
+  const [vfsTree, setVfsTree] = useState<any[]>([]);
   const [files, setFiles] = useState<DirItem[]>([]);
   const [fileContent, setFileContent] = useState<FileContent>(
     {} as unknown as FileContent
@@ -81,20 +86,39 @@ export const ExplorerContextProvider: React.FC<{
     }
   };
 
+  async function _vfsTree(rootDir:any){
+    const tree = await buildVFSTree(rootDir);
+    setVfsTree(tree)
+  }     
+
   useEffect(() => {
+    //console.log('rootDir',openFiles);
+
     if (rootDir?.length > 0) {
+      _vfsTree(rootDir)
       setEditorInUse(true);
-      setShowRepoView(false);
-    } else {
+      setShowRepoView(false);      
+    } else 
+    {
       setOpenFiles([]);
       setEditorInUse(false);
       setShowRepoView(true);
+      console.log('checking rerender');
+      
     }
   }, [rootDir]);
 
+  useEffect(()=>{
+     if(rootDir.length>0 && vfsTree.length>0){
+      setVFS(vfsTree as unknown as any);      
+      console.log(VFS,'vgs');
+     }
+  },[VFS,vfsTree])
+
   // toggle the selected file active in the ed
   useEffect(() => {
-    setActiveFileIndex(openFiles?.length! - 1);
+    //console.log(openFiles);
+     setActiveFileIndex(openFiles?.length! - 1);
   }, [openFiles]);
 
   // reads and loads the content
@@ -116,6 +140,8 @@ export const ExplorerContextProvider: React.FC<{
         setRootDir,
         files,
         setFiles,
+        VFS,
+        setVFS,
         fileContent,
         setFileContent,
         activeFileIndex,
@@ -143,47 +169,45 @@ export const useExplorerContext = (): ExplorerContextType => {
 export default ExplorerContextProvider;
 function getFileLang(name: string): string {
   // Extract the file extension from the name
-  const extension = name?.split('.').pop()?.toLowerCase();  // Get extension, normalize to lowercase
-  
+  const extension = name?.split(".").pop()?.toLowerCase(); // Get extension, normalize to lowercase
+
   // Map file extensions to language names or file types
   const languageMap: Record<string, string> = {
-    js: 'javascript',
-    ts: 'typescript',
-    jsx: 'javascript',
-    tsx: 'typescript',
-    html: 'html',
-    css: 'css',
-    scss: 'sass/scss',
-    less: 'less',
-    java: 'java',
-    py: 'python',
-    rb: 'ruby',
-    php: 'php',
-    go: 'go',
-    c: 'c',
-    cpp: 'c++',
-    rust: 'rust',
-    swift: 'swift',
-    kotlin: 'kotlin',
-    sql: 'sql',
-    md: 'markdown',
-    json: 'json',
-    yaml: 'yaml',
-    xml: 'xml',
-    txt: 'plain text',
-    csv: 'csv',
-    exe: 'executable',
-    pdf: 'pdf',
-    png: 'png image',
-    jpg: 'jpg image',
-    gif: 'gif image',
-    mp4: 'mp4 video',
-    mp3: 'mp3 audio',
+    js: "javascript",
+    ts: "typescript",
+    jsx: "javascript",
+    tsx: "typescript",
+    html: "html",
+    css: "css",
+    scss: "sass/scss",
+    less: "less",
+    java: "java",
+    py: "python",
+    rb: "ruby",
+    php: "php",
+    go: "go",
+    c: "c",
+    cpp: "c++",
+    rust: "rust",
+    swift: "swift",
+    kotlin: "kotlin",
+    sql: "sql",
+    md: "markdown",
+    json: "json",
+    yaml: "yaml",
+    xml: "xml",
+    txt: "plain text",
+    csv: "csv",
+    exe: "executable",
+    pdf: "pdf",
+    png: "png image",
+    jpg: "jpg image",
+    gif: "gif image",
+    mp4: "mp4 video",
+    mp3: "mp3 audio",
     // Add more file extensions as needed...
   };
 
   // Return the corresponding language or file type in lowercase
-  return extension ? languageMap[extension] || 'unknown' : 'unknown';
+  return extension ? languageMap[extension] || "unknown" : "unknown";
 }
-
-
