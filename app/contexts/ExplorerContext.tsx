@@ -36,6 +36,10 @@ interface ExplorerContextType {
   setCurExView: Dispatch<SetStateAction<string>>;
   curExDir: string;
   setCurExDir: Dispatch<SetStateAction<string>>;
+  createNewFolder: boolean;
+  setCreateNewFolder: Dispatch<SetStateAction<boolean>>;
+  createNewFile: boolean;
+  setCreateNewFile: Dispatch<SetStateAction<boolean>>;
   activeFileIndex: number;
   setActiveFileIndex: Dispatch<SetStateAction<number>>;
   rootDir: DirItem[];
@@ -67,6 +71,8 @@ export const ExplorerContextProvider: React.FC<{
   );
   const [curExView, setCurExView] = useState('');
   const [curExDir, setCurExDir] = useState('');
+  const [createNewFolder, setCreateNewFolder] = useState(false);
+  const [createNewFile, setCreateNewFile] = useState(false);
   const [activeFileIndex, setActiveFileIndex] = useState(0);
 
   // Fetch files from the server
@@ -155,6 +161,10 @@ export const ExplorerContextProvider: React.FC<{
         setCurExView,
         curExDir,
         setCurExDir,
+        createNewFile,
+        setCreateNewFile,
+        createNewFolder,
+        setCreateNewFolder,
         files,
         setFiles,
         VFS,

@@ -18,7 +18,7 @@ function Explorer() {
     }
   }
   return <Box sx={{
-    minWidth: "30vw",
+    minWidth: "40vw",
     maxWidth:"80vw",
     height: "100vh",
     overflow: "auto",
