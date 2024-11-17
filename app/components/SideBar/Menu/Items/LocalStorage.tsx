@@ -3,27 +3,31 @@ import { useExplorerContext } from "@/contexts/ExplorerContext";
 import { Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 
+// Declare module to extend HTML attributes for custom props
 declare module "react" {
   interface HTMLAttributes<T> extends AriaAttributes, DOMAttributes<T> {
-    // extends React's HTMLAttributes
-    directory?: any; // remember to make these attributes optional....
-    webkitdirectory?: any;
+    directory?: boolean; // Optional attributes for directory upload
+    webkitdirectory?: boolean;
   }
 }
 
-const LocalStorage = () => {
-  const {setRootDir} = useExplorerContext()
-  const {setSessionType,setSessionDir} = useEditorLayoutContext()
-  const [fileList, setFileList] = useState([]);
-  const openFile = useRef(null);
+const LocalStorage: React.FC = () => {
+  const { setRootDir } = useExplorerContext();
+  const { setSessionType, setSessionDir } = useEditorLayoutContext();
+
+  // Type the fileList as an array of File objects
+  const [fileList, setFileList] = useState<File[]>([]);
+  const openFile = useRef<HTMLInputElement | null>(null);
 
   // Function to handle file selection
-  const handleFileSelect = (event) => {
-    const files = Array.from(event.target.files);
-    setFileList(files);
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const files = Array.from(event.target.files);
+      setFileList(files);
+    }
   };
 
-  // Function to send files to Next.js API route
+  // Function to send files to the API
   const handleUpload = async () => {
     const formData = new FormData();
     fileList.forEach((file) => formData.append("files", file));
@@ -37,9 +41,9 @@ const LocalStorage = () => {
       if (response.ok) {
         const res = await response.json();
         console.log("Upload successful:", res);
-        setRootDir(res.dir)
-        setSessionType('local')
-        setSessionDir(res.dirPath)
+        setRootDir(res.dir);
+        setSessionType("local");
+        setSessionDir(res.dirPath);
       } else {
         console.error("Upload failed");
       }
@@ -48,11 +52,12 @@ const LocalStorage = () => {
     }
   };
 
-  useEffect(()=>{
-    if (fileList.length>0) {
-      handleUpload()
+  // Trigger the upload whenever the fileList changes
+  useEffect(() => {
+    if (fileList.length > 0) {
+      handleUpload();
     }
-  },[fileList])
+  }, [fileList]);
 
   return (
     <div>
@@ -60,7 +65,7 @@ const LocalStorage = () => {
         variant="body2"
         fontWeight="bold"
         onClick={() => {
-          openFile.current.click();
+          openFile.current?.click(); // Safe null check before calling click()
         }}
       >
         Open File
@@ -75,8 +80,7 @@ const LocalStorage = () => {
         type="file"
         ref={openFile}
       />
-
-     </div>
+    </div>
   );
 };
 
