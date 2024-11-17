@@ -26,6 +26,28 @@ export default async function handler(
       // Write new content to the file
       fs.writeFileSync(fullPath, content);
       res.status(200).json({ message: "File updated successfully" });
+    } else if (action == "writeFiles" && Array.isArray(content)) {
+      try {
+        // Loop through each file and write the content to its respective file path
+        content.forEach((file: { filePath: string; content: string }) => {
+          const filePath = path.join(process.cwd(), file.filePath); // Absolute file path on the server
+          
+          // Create the parent directories if they don't exist
+          const dir = path.dirname(filePath);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+
+          // Write the file content to the disk
+          fs.writeFileSync(filePath, file.content, 'utf8');
+        });
+
+        // Respond with success
+        res.status(200).json({ message: 'Files saved successfully.' });
+      } catch (error) {
+        console.error('Error writing files:', error);
+        res.status(500).json({ message: 'Failed to write files.', error });
+      }
     } else if (action === "clearDir") {
       const clearDirectory = (dirPath: string) => {
         if (fs.existsSync(dirPath)) {

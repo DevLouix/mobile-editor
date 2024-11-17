@@ -2,11 +2,13 @@ import { useRef, useState, useEffect } from "react";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
 import { FileItem } from "@/types/main";
+import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
 
 const CodeBox = () => {
   const monaco = useMonaco();
   const editorRef = useRef<any>(null); // Ref to hold the editor instance
-  const { VFS } = useExplorerContext();
+  const {editorInUse}=useEditorLayoutContext()
+  const { VFS,activeFile } = useExplorerContext();
   const [models, setModels] = useState<Map<string, any>>(new Map());
   const [currentFilePath, setCurrentFilePath] = useState("");
 
@@ -17,12 +19,23 @@ const CodeBox = () => {
     }
   }, [VFS, monaco]);
 
+  useEffect(()=>{
+    switchFile(activeFile?.path)
+  },[activeFile])
+
+  useEffect(()=>{
+    if(!editorInUse){
+      if (models.size!=0) {
+        clearMonacoModels()
+      }
+    }
+  })
+
   // Create Monaco models from the directory structure
   function createMonacoModelsFromDir(directoryStructure: FileItem[]) {
-    // Traverse the directory structure and create models for files
     directoryStructure.forEach((item) => {
       if (!item.isDirectory && item.content) {
-        createMonacoModel(item);  // Create a model for the file
+        createMonacoModel(item); // Create a model for the file
       }
 
       if (item.isDirectory && item.children && item.children.length > 0) {
@@ -42,10 +55,39 @@ const CodeBox = () => {
 
     // If the model does not exist, create a new one
     if (!model) {
-      model = monaco?.editor.createModel(content, language, monaco.Uri.parse(filePath));
+      model = monaco?.editor.createModel(
+        content,
+        language,
+        monaco.Uri.parse(filePath)
+      );
       setModels((prevModels) => new Map(prevModels).set(filePath, model)); // Add model to state
     }
   }
+
+  // Function to clear all Monaco models
+  function clearMonacoModels() {
+    // Get all currently created models
+    const models = monaco?.editor.getModels();
+  
+    // Loop through each model and dispose of it
+    models?.forEach((model) => {
+      model.dispose();
+    });
+  
+    console.log("All Monaco models have been cleared.");
+  }
+
+  function clearSpecificModel(fileName: string) {
+    const models = monaco?.editor.getModels();
+  
+    models?.forEach((model) => {
+      if (model.uri.path === fileName) {
+        model.dispose();
+        console.log(`Model for ${fileName} has been cleared.`);
+      }
+    });
+  }
+  
 
   // Switch file by updating the model in the editor
   const switchFile = (filePath: string) => {
@@ -99,13 +141,12 @@ const CodeBox = () => {
   useEffect(() => {
     if (editorRef.current && models.size > 0) {
       // Automatically switch to a default file if models exist
-      
-      const defaultFilePath = '/tmp/TermAid/ReadMe.md';
-      switchFile(defaultFilePath);
+      console.log(models);
+      const defaultFilePath = "/tmp/TermAid/ReadMe.md";
+      //switchFile(defaultFilePath);
     }
+    console.log(models);
   }, [models]);
-  console.log(models);
-
 
   // When the editor is mounted, store the editor instance in a ref
   function handleEditorDidMount(editor: any, monaco: any) {

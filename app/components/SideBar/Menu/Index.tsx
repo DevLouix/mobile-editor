@@ -2,7 +2,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { IconButton, MenuItem, Menu } from "@mui/material";
 import React from "react";
 import File from "./Items/File";
-import Edit from "./Items/Edit";
 import GitRepository from "./Items/GitRepo/Index";
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
 import Close from "./Items/Close";
@@ -53,14 +52,7 @@ function MenuButton() {
          </>
         ) : (
           <>
-            <MenuItem onClick={handleClose}>
-              <File />
-            </MenuItem>
-            <MenuItem onClick={handleClose}>
-              <Edit />
-            </MenuItem>
-
-            <MenuItem onClick={handleClose}>Terminal</MenuItem>
+            
             <MenuItem onClick={handleClose}>
               <Close />
             </MenuItem>

@@ -12,9 +12,10 @@ import SideBarToggleBtn from "./SideBarToggleBtn";
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
 import { RSC_ACTION_ENCRYPTION_ALIAS } from "next/dist/lib/constants";
 import Repositories from "./Menu/Items/GitRepo/RepoView";
+import GitActions from "./GitActions/Index";
 
 function SideBar() {
-  const { showSideBar } = useEditorLayoutContext();
+  const { showSideBar, editorInUse } = useEditorLayoutContext();
   return (
     <>
       {showSideBar ? (
@@ -30,7 +31,13 @@ function SideBar() {
         >
           <MenuButton />
           <FilesBtn />
-          
+          {editorInUse ? (
+            <>
+              <GitActions />
+            </>
+          ) : (
+            ""
+          )}
         </Box>
       ) : (
         ""

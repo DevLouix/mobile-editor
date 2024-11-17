@@ -8,7 +8,8 @@ import React, {
 } from "react";
 import { useEditorLayoutContext } from "./EditorLayoutContext";
 import { validate } from "uuid";
-import { buildVFSTree }from "@/lib/vfsBuild";
+import { buildVFSTree } from "@/lib/vfsBuild";
+import { FileItem } from "@/types/main";
 
 // Define the shape of the context
 interface DirItem {
@@ -27,8 +28,14 @@ interface ExplorerContextType {
   setVFS: Dispatch<SetStateAction<any[]>>;
   files: DirItem[];
   setFiles: Dispatch<SetStateAction<DirItem[]>>;
+  activeFile: FileItem;
+  setActiveFile: Dispatch<SetStateAction<FileItem>>;
   fileContent: FileContent;
   setFileContent: Dispatch<SetStateAction<FileContent>>;
+  curExView: string;
+  setCurExView: Dispatch<SetStateAction<string>>;
+  curExDir: string;
+  setCurExDir: Dispatch<SetStateAction<string>>;
   activeFileIndex: number;
   setActiveFileIndex: Dispatch<SetStateAction<number>>;
   rootDir: DirItem[];
@@ -55,6 +62,11 @@ export const ExplorerContextProvider: React.FC<{
   const [fileContent, setFileContent] = useState<FileContent>(
     {} as unknown as FileContent
   );
+  const [activeFile, setActiveFile] = useState<FileItem>(
+    {} as unknown as FileItem
+  );
+  const [curExView, setCurExView] = useState('');
+  const [curExDir, setCurExDir] = useState('');
   const [activeFileIndex, setActiveFileIndex] = useState(0);
 
   // Fetch files from the server
@@ -86,62 +98,69 @@ export const ExplorerContextProvider: React.FC<{
     }
   };
 
-  async function _vfsTree(rootDir:any){
+  async function _vfsTree(rootDir: any) {
+    console.log(rootDir);
+
     const tree = await buildVFSTree(rootDir);
-    setVfsTree(tree)
-  }     
+    setVfsTree(tree);
+  }
 
   useEffect(() => {
-    //console.log('rootDir',openFiles);
+    // console.log(rootDir,openFiles);
 
     if (rootDir?.length > 0) {
-      _vfsTree(rootDir)
+      _vfsTree(rootDir);
       setEditorInUse(true);
-      setShowRepoView(false);      
-    } else 
-    {
+      setShowRepoView(false);
+    } else {
       setOpenFiles([]);
       setEditorInUse(false);
       setShowRepoView(true);
-      console.log('checking rerender');
-      
+      console.log("checking rerender");
     }
   }, [rootDir]);
 
-  useEffect(()=>{
-     if(rootDir.length>0 && vfsTree.length>0){
-      setVFS(vfsTree as unknown as any);      
-      console.log(VFS,'vgs');
-     }
-  },[VFS,vfsTree])
+  useEffect(() => {
+    if (rootDir.length > 0 && vfsTree.length > 0) {
+      setVFS(vfsTree as unknown as any);
+      console.log(VFS, "vgs");
+    }
+  }, [VFS, vfsTree]);
 
   // toggle the selected file active in the ed
   useEffect(() => {
     //console.log(openFiles);
-     setActiveFileIndex(openFiles?.length! - 1);
+    setActiveFileIndex(openFiles?.length! - 1);
   }, [openFiles]);
 
   // reads and loads the content
   useEffect(() => {
     const file = openFiles![activeFileIndex];
-    openFiles
-      ? setFileContent({
-          name: file?.name,
-          value: file?.content,
-          language: getFileLang(file?.name),
-        })
-      : "";
-  }, [activeFileIndex, fileContent]);
+    setActiveFile(file)
+    // openFiles
+    //   ? setFileContent({
+    //       name: file?.name,
+    //       value: file?.content,
+    //       language: getFileLang(file?.name),
+    //     })
+    //   : "";
+  }, [activeFileIndex, activeFile,openFiles]);
 
   return (
     <ExplorerContext.Provider
       value={{
         rootDir,
         setRootDir,
+        curExView,
+        setCurExView,
+        curExDir,
+        setCurExDir,
         files,
         setFiles,
         VFS,
         setVFS,
+        activeFile,
+        setActiveFile,
         fileContent,
         setFileContent,
         activeFileIndex,

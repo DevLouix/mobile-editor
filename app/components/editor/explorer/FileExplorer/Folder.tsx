@@ -33,6 +33,7 @@ const Folder = ({ files }: { files: FileItem[] }) => {
                     file.name == files[index].name
                       ? setShowSubFolder(!showSubFolder)
                       : "";
+                      
                   }}
                 >
                   {file.name == files[index].name && showSubFolder ? (

@@ -6,10 +6,12 @@ import React from "react";
 
 function FilesBtn() {
   const { setEditorOnlyView, editorOnlyView } = useEditorLayoutContext();
+  const { curExView, setCurExView } = useExplorerContext();
   return (
     <IconButton
       onClick={() => {
-        setEditorOnlyView(!editorOnlyView);
+        setCurExView("");
+        curExView == "" ? setEditorOnlyView(!editorOnlyView) : "";
       }}
     >
       <FileCopy />

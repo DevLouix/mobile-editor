@@ -1,34 +1,32 @@
-import { Box, Typography } from "@mui/material";
 import React from "react";
-import ToolBar from "./ToolBar";
-import { flexRowBetween } from "@/styles/main";
-import FileBrowser from "./FileBrowser";
+import GitExplorer from "./GitExplorer/Index";
+import FileExplorer from "./FileExplorer";
+import { useExplorerContext } from "@/contexts/ExplorerContext";
+import { Box } from "@mui/material";
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
 
 function Explorer() {
-  const { editorOnlyView, setEditorOnlyView } = useEditorLayoutContext();
-  return (
-    <Box
-      sx={{
-        minWidth: "20vw",
-        height: "100vh",
-        backgroundColor: "black",
-        color: "grey",
-        overflowY: "auto",
-        display: editorOnlyView ? "none" : "block",
-      }}
-    >
-      <Box>
-        <Box sx={flexRowBetween}>
-          <Typography variant="h6" fontWeight={"bold"}>
-            Explorer
-          </Typography>
-          <ToolBar />
-        </Box>
-        <FileBrowser />
-      </Box>
-    </Box>
-  );
+  const {editorOnlyView}=useEditorLayoutContext()
+  const {curExView}=useExplorerContext()
+  function getView() {
+    switch (curExView) {
+      case "GitActions":
+        return <GitExplorer/>
+    
+      default:
+        return <FileExplorer/>
+    }
+  }
+  return <Box sx={{
+    minWidth: "30vw",
+    maxWidth:"80vw",
+    height: "100vh",
+    overflow: "auto",
+    backgroundColor: "black",
+    color: "grey",
+    overflowY: "auto",
+    display: editorOnlyView ? "none" : "block",
+  }} >{getView()}</Box>;
 }
 
 export default Explorer;
