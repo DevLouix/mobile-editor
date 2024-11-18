@@ -13,7 +13,7 @@ if (!fs.existsSync(baseUploadDir)) {
 }
 
 // Helper func get dit
-const getDirectoryStructure = (dir: string) => {
+const getDirectoryStructure:any = (dir: string) => {
   return fs.readdirSync(dir).map((file) => {
     const filePath = path.join(dir, file);
     const isDirectory = fs.statSync(filePath).isDirectory();

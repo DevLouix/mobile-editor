@@ -4,7 +4,6 @@ import git, { FsClient } from "isomorphic-git";
 import http from "isomorphic-git/http/web"; // Use 'http/node' if on server
 import fs from "fs";
 import path from "path";
-import { FileItem } from "@/types/main";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
