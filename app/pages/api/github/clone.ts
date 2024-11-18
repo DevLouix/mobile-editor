@@ -4,6 +4,7 @@ import git, { FsClient } from "isomorphic-git";
 import http from "isomorphic-git/http/web"; // Use 'http/node' if on server
 import fs from "fs";
 import path from "path";
+import { FileItem } from "@/types/main";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -25,7 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     // Function to get the entire directory structure recursively
-    const getDirectoryStructure = (dir: string) => {
+    const getDirectoryStructure: any = (dir: string) => {
       return fs.readdirSync(dir).map((file) => {
         const filePath = path.join(dir, file);
         const isDirectory = fs.statSync(filePath).isDirectory();
@@ -41,7 +42,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const repoDir = getDirectoryStructure(_dir);
     res
       .status(200)
-      .json({ message: "Repository cloned successfully", dir, repoDir,dirPath:_dir });
+      .json({
+        message: "Repository cloned successfully",
+        dir,
+        repoDir,
+        dirPath: _dir,
+      });
   } catch (error: any) {
     console.error("Error cloning repository:", error);
     res.status(500).json({ error: error.message });
