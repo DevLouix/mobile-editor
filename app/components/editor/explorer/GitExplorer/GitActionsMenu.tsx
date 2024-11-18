@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { TextField, Button, Menu, MenuItem, FormControl, InputLabel, Select, FormHelperText, Typography, Divider, Box } from "@mui/material";
+import React, { ReactNode, useState } from "react";
+import { TextField, Button, Menu, MenuItem, FormControl, InputLabel, Select, FormHelperText, Typography, Divider, Box, SelectChangeEvent } from "@mui/material";
 
 // GitActionsMenu Component
 const GitActionsMenu = () => {
@@ -22,7 +22,7 @@ const GitActionsMenu = () => {
   };
 
   // Branch Selection Handler
-  const handleBranchChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleBranchChange = (event: SelectChangeEvent<string>, child: ReactNode)  => {
     setBranch(event.target.value as string);
   };
 
