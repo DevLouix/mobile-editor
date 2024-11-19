@@ -1,24 +1,23 @@
 import { Box, Typography } from "@mui/material";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ToolBar from "./ToolBar";
 import { flexRowBetween } from "@/styles/main";
 import FileBrowser from "./FileBrowser";
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
+import { useExplorerContext } from "@/contexts/ExplorerContext";
+import { FileItem } from "@/types/main";
 
 function FileExplorer() {
   const { editorOnlyView, setEditorOnlyView } = useEditorLayoutContext();
+  const { rootDir, rootFolder } = useExplorerContext();
+
   return (
-    
-      <Box>
-        <Box >
-          <Typography variant="h6" fontWeight={"bold"}>
-            Explorer
-          </Typography>
-          <ToolBar />
-        </Box>
-        <FileBrowser />
-      </Box>
-  
+    <Box>
+      <Typography variant="body2" p={1}>
+        Explorer
+      </Typography>
+      <FileBrowser />
+    </Box>
   );
 }
 

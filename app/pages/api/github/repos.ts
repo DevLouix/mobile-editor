@@ -19,7 +19,7 @@ export default async function handler(
   });
 
   const repos = await response.json();
-  //console.log(repos);
+  // console.log(repos);
   
   res.status(200).json(repos);
 }

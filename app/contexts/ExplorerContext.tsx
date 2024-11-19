@@ -10,12 +10,17 @@ import { useEditorLayoutContext } from "./EditorLayoutContext";
 import { validate } from "uuid";
 import { buildVFSTree } from "@/lib/vfsBuild";
 import { FileItem } from "@/types/main";
+import axios from "axios";
 
 // Define the shape of the context
 interface DirItem {
   name: string;
   isDirectory: boolean;
   path: string;
+}
+interface RootFolder {
+  name: string;
+  path?: string;
 }
 interface FileContent {
   name: string;
@@ -24,7 +29,7 @@ interface FileContent {
 }
 
 interface ExplorerContextType {
-  VFS: any[];
+  VFS: any[]; //THE MODIFIED RAW DATA FROM CLOUD IS STORED IN TRHIS VAR
   setVFS: Dispatch<SetStateAction<any[]>>;
   files: DirItem[];
   setFiles: Dispatch<SetStateAction<DirItem[]>>;
@@ -36,14 +41,18 @@ interface ExplorerContextType {
   setCurExView: Dispatch<SetStateAction<string>>;
   curExDir: string;
   setCurExDir: Dispatch<SetStateAction<string>>;
+  refreshFiles: boolean;
+  setRefreshFiles: Dispatch<SetStateAction<boolean>>;
   createNewFolder: boolean;
   setCreateNewFolder: Dispatch<SetStateAction<boolean>>;
   createNewFile: boolean;
   setCreateNewFile: Dispatch<SetStateAction<boolean>>;
   activeFileIndex: number;
   setActiveFileIndex: Dispatch<SetStateAction<number>>;
-  rootDir: DirItem[];
-  setRootDir: Dispatch<SetStateAction<DirItem[]>>;
+  rootDir: FileItem | null; //THE RAW DATA FROM CLOUD IS STORED IN THIS VAR
+  setRootDir: Dispatch<SetStateAction<FileItem | null>>;
+  rootFolder: RootFolder | null; //THE RAW DATA FROM CLOUD IS STORED IN THIS VAR
+  setRootFolder: Dispatch<SetStateAction<RootFolder | null>>;
   fetchFiles: (dirPath?: string) => Promise<void>;
   createDirectory: (dirName: string) => Promise<void>;
 }
@@ -59,7 +68,8 @@ export const ExplorerContextProvider: React.FC<{
 }> = ({ children }) => {
   const { setEditorInUse, setShowRepoView, setOpenFiles, openFiles } =
     useEditorLayoutContext();
-  const [rootDir, setRootDir] = useState<DirItem[]>([]);
+  const [rootDir, setRootDir] = useState<FileItem | null>(null);
+  const [rootFolder, setRootFolder] = useState<RootFolder | null>(null);
   const [VFS, setVFS] = useState<any[]>([]);
   const [vfsTree, setVfsTree] = useState<any[]>([]);
   const [files, setFiles] = useState<DirItem[]>([]);
@@ -69,8 +79,9 @@ export const ExplorerContextProvider: React.FC<{
   const [activeFile, setActiveFile] = useState<FileItem>(
     {} as unknown as FileItem
   );
-  const [curExView, setCurExView] = useState('');
-  const [curExDir, setCurExDir] = useState('');
+  const [curExView, setCurExView] = useState("");
+  const [curExDir, setCurExDir] = useState("");
+  const [refreshFiles, setRefreshFiles] = useState(false);
   const [createNewFolder, setCreateNewFolder] = useState(false);
   const [createNewFile, setCreateNewFile] = useState(false);
   const [activeFileIndex, setActiveFileIndex] = useState(0);
@@ -104,17 +115,18 @@ export const ExplorerContextProvider: React.FC<{
     }
   };
 
-  async function _vfsTree(rootDir: any) {
+  // Reads and popuilate files contents for monacoco model
+  async function _vfsTree(rootDir: FileItem) {
     console.log(rootDir);
 
-    const tree = await buildVFSTree(rootDir);
+    const tree = await buildVFSTree([rootDir]);
     setVfsTree(tree);
   }
 
   useEffect(() => {
-    // console.log(rootDir,openFiles);
+    // console.log(rootDir,"openFiles");
 
-    if (rootDir?.length > 0) {
+    if (rootDir) {
       _vfsTree(rootDir);
       setEditorInUse(true);
       setShowRepoView(false);
@@ -127,7 +139,7 @@ export const ExplorerContextProvider: React.FC<{
   }, [rootDir]);
 
   useEffect(() => {
-    if (rootDir.length > 0 && vfsTree.length > 0) {
+    if (rootDir && vfsTree.length > 0) {
       setVFS(vfsTree as unknown as any);
       console.log(VFS, "vgs");
     }
@@ -139,24 +151,35 @@ export const ExplorerContextProvider: React.FC<{
     setActiveFileIndex(openFiles?.length! - 1);
   }, [openFiles]);
 
-  // reads and loads the content
+  // sets file active
   useEffect(() => {
     const file = openFiles![activeFileIndex];
-    setActiveFile(file)
-    // openFiles
-    //   ? setFileContent({
-    //       name: file?.name,
-    //       value: file?.content,
-    //       language: getFileLang(file?.name),
-    //     })
-    //   : "";
-  }, [activeFileIndex, activeFile,openFiles]);
+    setActiveFile(file);
+  }, [activeFileIndex, activeFile, openFiles]);
+
+  // async function refreshEx() {
+  //   const res = await axios.post("/api/explorer", {
+  //     action: "readDir",
+  //     filePath: rootDir?.name,
+  //   });
+  //   console.log(res);
+  //   // setRootDir(res.data.root);
+  // }
+  // useEffect(() => {
+  //   if (refreshFiles) {
+  //     refreshEx();
+  //   }
+  // }, [refreshFiles]);
 
   return (
     <ExplorerContext.Provider
       value={{
         rootDir,
         setRootDir,
+        rootFolder,
+        setRootFolder,
+        refreshFiles,
+        setRefreshFiles,
         curExView,
         setCurExView,
         curExDir,

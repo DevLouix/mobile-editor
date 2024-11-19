@@ -7,8 +7,8 @@ import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
 const CodeBox = () => {
   const monaco = useMonaco();
   const editorRef = useRef<any>(null); // Ref to hold the editor instance
-  const {editorInUse}=useEditorLayoutContext()
-  const { VFS,activeFile } = useExplorerContext();
+  const { editorInUse } = useEditorLayoutContext();
+  const { VFS, activeFile } = useExplorerContext();
   const [models, setModels] = useState<Map<string, any>>(new Map());
   const [currentFilePath, setCurrentFilePath] = useState("");
 
@@ -19,17 +19,19 @@ const CodeBox = () => {
     }
   }, [VFS, monaco]);
 
-  useEffect(()=>{
-    switchFile(activeFile?.path)
-  },[activeFile])
+  useEffect(() => {
+    // console.log(activeFile,"from codebox.tsx");
 
-  useEffect(()=>{
-    if(!editorInUse){
-      if (models.size!=0) {
-        clearMonacoModels()
+    switchFile(activeFile?.path);
+  }, [activeFile]);
+
+  useEffect(() => {
+    if (!editorInUse) {
+      if (models.size > 0) {
+        clearMonacoModels();
       }
     }
-  })
+  }, [editorInUse]);
 
   // Create Monaco models from the directory structure
   function createMonacoModelsFromDir(directoryStructure: FileItem[]) {
@@ -68,18 +70,18 @@ const CodeBox = () => {
   function clearMonacoModels() {
     // Get all currently created models
     const models = monaco?.editor.getModels();
-  
+
     // Loop through each model and dispose of it
     models?.forEach((model) => {
       model.dispose();
     });
-  
+
     console.log("All Monaco models have been cleared.");
   }
 
   function clearSpecificModel(fileName: string) {
     const models = monaco?.editor.getModels();
-  
+
     models?.forEach((model) => {
       if (model.uri.path === fileName) {
         model.dispose();
@@ -87,7 +89,6 @@ const CodeBox = () => {
       }
     });
   }
-  
 
   // Switch file by updating the model in the editor
   const switchFile = (filePath: string) => {

@@ -1,35 +1,47 @@
 import { FileItem } from "@/types/main";
-import { ArrowDropDown, ArrowRight, FileCopy, FolderCopy } from "@mui/icons-material";
+import {
+  ArrowDropDown,
+  ArrowRight,
+  FileCopy,
+  FolderCopy,
+} from "@mui/icons-material";
 import { Box, List, ListItem, TextField, Typography } from "@mui/material";
 import React, { useState } from "react";
 import File from "./File";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
+import ToolBar from "./ToolBar";
 
 const Folder = ({
   files,
   parentFolderPath = "",
   activeFolderPath,
   setActiveFolderPath,
+  newVal,
+  setNewVal,
+  handleCreateNew,
+  rename,
+  setRename,
 }: {
   files: FileItem[];
   parentFolderPath?: string;
+  newVal: string | null;
+  setNewVal: React.Dispatch<React.SetStateAction<string | null>>;
+  rename: boolean;
+  setRename: React.Dispatch<React.SetStateAction<boolean>>;
   activeFolderPath: string | null;
-  setActiveFolderPath: React.Dispatch<React.SetStateAction<string | null>>; // Correctly typed setter function
+  setActiveFolderPath: React.Dispatch<React.SetStateAction<string | null>>;
+  handleCreateNew: () => {};
 }) => {
-  const [newDirVal, setNewDirVal] = useState("");
-  const [folderVisibility, setFolderVisibility] = useState<{ [key: string]: boolean }>({});
-  const { createNewFile, createNewFolder, setCreateNewFile, setCreateNewFolder } = useExplorerContext();
-
-  // Sort directories and files separately, alphabetically
-  const sortedDirectories = files
-    .filter((file) => file.isDirectory)
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  const sortedFiles = files
-    .filter((file) => !file.isDirectory)
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  const sortedFilesWithDirectories = [...sortedDirectories, ...sortedFiles];
+  const [folderVisibility, setFolderVisibility] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const {
+    rootDir,
+    createNewFile,
+    createNewFolder,
+    setCreateNewFile,
+    setCreateNewFolder,
+  } = useExplorerContext();
 
   // Toggle visibility of subfolders
   const toggleSubFolder = (folderPath: string) => {
@@ -44,37 +56,19 @@ const Folder = ({
     setActiveFolderPath(path); // Set the folder path as active
     setCreateNewFile(false);
     setCreateNewFolder(false);
-    setNewDirVal(""); // Reset the "new directory" input value
+    setNewVal(""); // Reset the "new directory" input value
     toggleSubFolder(path); // Toggle the visibility of the folder
   };
 
-  // Handle the "Create New" logic for folder/file creation
-  const handleCreateNew = async () => {
-    if (createNewFile) {
-      await _createNewFile();
-    } else if (createNewFolder) {
-      await _createNewFolder();
-    }
-    setNewDirVal(""); // Reset input value after creation
-  };
-
-  // Create new folder logic (context-controlled)
-  async function _createNewFolder() {
-    setCreateNewFolder(false);
-  }
-
-  // Create new file logic (context-controlled)
-  async function _createNewFile() {
-    setCreateNewFile(false);
-  }
-
   return (
     <ul>
-      {sortedFilesWithDirectories.map((file, index) => {
-        const fullPath = parentFolderPath ? `${parentFolderPath}/${file.name}` : file.name;
+      {files.map((file, index) => {
+        const fullPath = parentFolderPath
+          ? `${parentFolderPath}/${file.name}`
+          : file.name;
 
         return (
-          <List sx={{ p: 0 }} key={file.path}>
+          <List sx={{ p: 0 }} key={index}>
             <ListItem
               sx={{
                 display: "flex",
@@ -86,34 +80,84 @@ const Folder = ({
             >
               {file.isDirectory ? (
                 <>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "row",
-                      gap: "2px",
-                      p: 0,
-                      backgroundColor: activeFolderPath === fullPath ? "#f0f0f0" : "transparent", // Highlight active folder
-                      cursor: "pointer",
-                    }}
-                    onClick={() => handleFolderClick(file, fullPath)} // Set active folder on click
-                  >
-                    {folderVisibility[fullPath] ? (
-                      <ArrowDropDown />
-                    ) : (
-                      <ArrowRight />
-                    )}
-                    <Typography variant="body2">{file.name}</Typography>
-                  </Box>
+                  {/* Check if its the root folder */}
+                  {file.name == rootDir?.name ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "2px",
+                        p: 0,
+                        backgroundColor:
+                          activeFolderPath === fullPath
+                            ? "#070707"
+                            : "transparent", // Highlight active folder
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                        }}
+                        onClick={() => handleFolderClick(file, fullPath)} // Set active folder on click
+                      >
+                        {folderVisibility[fullPath] ? (
+                          <ArrowDropDown />
+                        ) : (
+                          <ArrowRight />
+                        )}
+                        <Typography variant="body2">{file.name}</Typography>
+                      </Box>
+                      <ToolBar />
+                    </Box>
+                  ) : (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "2px",
+                        p: 0,
+                        backgroundColor:
+                          activeFolderPath === fullPath
+                            ? "#f0f0f0"
+                            : "transparent", // Highlight active folder
+                        cursor: "pointer",
+                      }}
+                      onClick={() => handleFolderClick(file, fullPath)} // Set active folder on click
+                    >
+                      {folderVisibility[fullPath] ? (
+                        <ArrowDropDown />
+                      ) : (
+                        <ArrowRight />
+                      )}
+                      {rename ? (
+                        <TextField
+                          value={newVal}
+                          onChange={(e) => {
+                            setNewVal(e.currentTarget.value);
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="body1">{file.name}</Typography>
+                      )}
+                    </Box>
+                  )}
 
                   {/* Show children if the folder is expanded */}
                   {file.children && folderVisibility[fullPath] ? (
                     <Box p={1}>
                       {/* Show the "Create New" input only for the active folder */}
-                      {(createNewFile || createNewFolder) && activeFolderPath === fullPath ? (
+                      {(createNewFile || createNewFolder) &&
+                      activeFolderPath === fullPath ? (
                         <Box
                           sx={{
                             display: "flex",
                             flexDirection: "row",
+                            alignItems: "center",
                             gap: "2px",
                             p: 0,
                           }}
@@ -121,14 +165,27 @@ const Folder = ({
                           {createNewFile ? (
                             <FileCopy sx={{ width: "10px", height: "10px" }} />
                           ) : (
-                            <FolderCopy sx={{ width: "10px", height: "10px" }} />
+                            <FolderCopy
+                              sx={{ width: "10px", height: "10px" }}
+                            />
                           )}
                           <TextField
-                            focused
+                            // focused
+                            autoFocus
                             variant="outlined"
                             sx={{ input: { color: "white" } }}
-                            value={newDirVal}
-                            onChange={(e) => setNewDirVal(e.currentTarget.value)}
+                            value={newVal}
+                            slotProps={{
+                              input: {
+                                style: { height: "20px", fontSize: "15px" },
+                              },
+                            }}
+                            onChange={(e) => setNewVal(e.currentTarget.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleCreateNew(); // Call function on Enter key press
+                              }
+                            }}
                             onBlur={handleCreateNew} // Trigger creation on blur
                           />
                         </Box>
@@ -141,6 +198,11 @@ const Folder = ({
                           parentFolderPath={fullPath} // Pass the full path to children
                           activeFolderPath={activeFolderPath} // Pass the active folder state
                           setActiveFolderPath={setActiveFolderPath} // Pass the setter function to children
+                          newVal={newVal}
+                          setNewVal={setNewVal}
+                          rename={rename}
+                          setRename={setRename}
+                          handleCreateNew={handleCreateNew}
                         />
                       </Box>
                     </Box>

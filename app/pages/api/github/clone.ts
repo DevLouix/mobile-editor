@@ -26,7 +26,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     // Function to get the entire directory structure recursively
     const getDirectoryStructure: any = (dir: string) => {
-      return fs.readdirSync(dir).map((file) => {
+      const items = fs.readdirSync(dir).map((file) => {
         const filePath = path.join(dir, file);
         const isDirectory = fs.statSync(filePath).isDirectory();
 
@@ -37,16 +37,35 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           children: isDirectory ? getDirectoryStructure(filePath) : null, // Recursively add children if it's a directory
         };
       });
-    };
-    const repoDir = getDirectoryStructure(_dir);
-    res
-      .status(200)
-      .json({
-        message: "Repository cloned successfully",
-        dir,
-        repoDir,
-        dirPath: _dir,
+      // Sort directories and files
+      return items.sort((a, b) => {
+        if (a.isDirectory && !b.isDirectory) return -1; // Directories first
+        if (!a.isDirectory && b.isDirectory) return 1; // Files after directories
+        return a.name.localeCompare(b.name); // Alphabetical order
       });
+    };
+
+    // Extract the root folder name from the directory path
+    const rootNameMatch = _dir.match(/\/([^/]+)$/); // Extract the last segment of the path
+    const rootName = rootNameMatch ? rootNameMatch[1] : "Project";
+
+    // Get the directory structure
+    const repoDir = getDirectoryStructure(_dir);
+
+    // Create a root folder object dynamically
+    const rootFolder = {
+      name: rootName,
+      isDirectory: true,
+      path: _dir,
+      children: repoDir,
+    };
+
+    // Return the response with the wrapped directory structure
+    res.status(200).json({
+      message: "Repository cloned successfully",
+      rootFolder, // Return the root folder object
+      dirPath: _dir,
+    });
   } catch (error: any) {
     console.error("Error cloning repository:", error);
     res.status(500).json({ error: error.message });

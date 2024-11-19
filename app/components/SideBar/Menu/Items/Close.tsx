@@ -8,19 +8,23 @@ import { useExplorerContext } from "@/contexts/ExplorerContext";
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
 
 export default function Close() {
-  const {setRootDir} = useExplorerContext()
-  const {sessionDir} = useEditorLayoutContext()
+  const { rootDir, setRootDir } = useExplorerContext();
+  const { sessionDir, setEditorInUse } = useEditorLayoutContext();
   return (
-    <Box width={"inherit"} >
+    <Box width={"inherit"}>
       <Typography
         id="demo-positioned-button"
         variant="body2"
         fontWeight="bold"
-        onClick={async() => {   
-            const res = await axios.post("api/explorer",{action:"clearDir",filePath:sessionDir})
-            console.log(res);
-            setRootDir([])
-          }}
+        onClick={async () => {
+          const res = await axios.post("api/explorer", {
+            action: "clearDir",
+            filePath: "/tmp/"+rootDir?.name,
+          });
+          console.log(res);
+          setRootDir(null);
+          setEditorInUse(false);
+        }}
         // onClick={handleClick}
         // onMouseLeave={handleClose}
       >

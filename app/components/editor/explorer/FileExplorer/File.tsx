@@ -17,12 +17,12 @@ const File = ({ file }: { file: FileItem }) => {
       onClick={async () => {
         // console.log(file.path);
 
-        const res = await axios.post("api/explorer", {
-          action: "read",
-          filePath: file.path,
-        });
-        console.log(res);
-        file.content = res.data.content;
+        // const res = await axios.post("api/explorer", {
+        //   action: "read",
+        //   filePath: file.path,
+        // });
+        // console.log(res);
+        // file.content = res.data.content;
         handleFile(file)
 
         // Assuming openFiles is already defined in the state
