@@ -54,6 +54,8 @@ const Folder = ({
   // Handle folder click (set it as active folder)
   const handleFolderClick = (file: FileItem, path: string) => {
     setActiveFolderPath(path); // Set the folder path as active
+    // console.log(file.path,activeFolderPath);
+    
     setCreateNewFile(false);
     setCreateNewFolder(false);
     setNewVal(""); // Reset the "new directory" input value
@@ -134,7 +136,8 @@ const Folder = ({
                       ) : (
                         <ArrowRight />
                       )}
-                      {rename ? (
+                      {rename &&
+                          activeFolderPath === fullPath ? (
                         <TextField
                           value={newVal}
                           onChange={(e) => {
