@@ -17,6 +17,8 @@ const Repositories: React.FC = () => {
     const fetchRepos = async () => {
       const response = await fetch("/api/github/repos");
       const data = await response.json();
+      //console.log(data);
+      
       setRepos(data);
     };
     fetchRepos();

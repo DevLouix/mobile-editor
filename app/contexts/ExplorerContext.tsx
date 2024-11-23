@@ -69,6 +69,7 @@ export const ExplorerContextProvider: React.FC<{
   const { setEditorInUse, setShowRepoView, setOpenFiles, openFiles } =
     useEditorLayoutContext();
   const [rootDir, setRootDir] = useState<FileItem | null>(null);
+  const [rootDirInit, setRootDirInit] = useState(false);
   const [rootFolder, setRootFolder] = useState<RootFolder | null>(null);
   const [VFS, setVFS] = useState<any[]>([]);
   const [vfsTree, setVfsTree] = useState<any[]>([]);
@@ -127,9 +128,12 @@ export const ExplorerContextProvider: React.FC<{
     // console.log(rootDir,"openFiles");
 
     if (rootDir) {
-      _vfsTree(rootDir);
-      setEditorInUse(true);
-      setShowRepoView(false);
+      if (!rootDirInit) {
+        _vfsTree(rootDir);
+        setEditorInUse(true);
+        setShowRepoView(false);
+        setRootDirInit(true);
+      }
     } else {
       setOpenFiles([]);
       setEditorInUse(false);

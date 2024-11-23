@@ -6,24 +6,44 @@ import Folder from "./Folder";
 import File from "./File";
 import { FileCopy, FolderCopy } from "@mui/icons-material";
 import axios from "axios";
+import { useFileBrowserContext } from "@/contexts/FileBrowserContext";
+import { addDirToRoot, addFileToDir, removeDirFromRoot } from "@/lib/editor";
 
 const FileBrowser = () => {
   const {
     rootDir,
     setRootDir,
-    rootFolder,
     createNewFile,
     createNewFolder,
     setCreateNewFile,
     setCreateNewFolder,
   } = useExplorerContext();
-  const [activeFolderPath, setActiveFolderPath] = useState<string | null>(null);
-  const [newVal, setNewVal] = useState<string | null>("");
-  const [rename, setRename] = useState(false);
+  const {
+    activeFilePath,
+    setActiveFilePath,
+    newVal,
+    setNewVal,
+    rename,
+    setRename,
+    handleCopy,
+    handleMove,
+    fileType,
+    setFileActionType,
+    pasteContext,
+    setPasteContext,
+    handlePaste
+  } = useFileBrowserContext();
   const [contextMenu, setContextMenu] = useState<{
     mouseX: number;
     mouseY: number;
   } | null>(null);
+
+  useEffect(() => {
+    if (!activeFilePath && rootDir) {
+      setActiveFilePath(rootDir?.path);
+    }
+    console.log(activeFilePath, "root filepath");
+  }, [activeFilePath]);
 
   if (!rootDir) return null;
 
@@ -34,38 +54,54 @@ const FileBrowser = () => {
     } else if (createNewFolder) {
       await _createNewFolder();
     }
-    setNewVal(""); // Reset input value after creation
+    setNewVal(null); // Reset input value after creation
   };
 
   // Create new folder logic (context-controlled)
   async function _createNewFolder() {
-    console.log(newVal, activeFolderPath);
+    console.log(newVal, activeFilePath);
 
-    const res = await axios.post("/api/explorer", {
-      action: "createDir",
-      filePath: `${activeFolderPath}/${newVal}`,
-    });
-    if (res.status == 200) {
-      await refreshEx();
+    if (newVal?.length! > 0) {
+      const res = await axios.post("/api/explorer", {
+        action: "createDir",
+        filePath: `${activeFilePath}/${newVal}`,
+      });
+      if (res.status == 200) {
+        const path = res.data.path;
+        //console.log(rootDir, path);
+        const newRootDir: FileItem = addDirToRoot(
+          rootDir!,
+          path,
+          rootDir?.path!
+        ) as unknown as FileItem;
+        console.log(rootDir, newRootDir);
+        setRootDir(newRootDir);
+      }
+      setActiveFilePath(activeFilePath + "/" + newVal);
+      setNewVal(null);
     }
-    setActiveFolderPath(activeFolderPath + "/" + newVal);
-    setNewVal(null);
     setCreateNewFolder(false);
   }
 
   // Create new file logic (context-controlled)
   async function _createNewFile() {
-    console.log(newVal, activeFolderPath);
+    console.log(newVal, activeFilePath);
 
-    const res = await axios.post("/api/explorer", {
-      action: "createFile",
-      filePath: `${activeFolderPath}/${newVal}`,
-    });
-    if (res.status == 200) {
-      await refreshEx();
+    if (newVal?.length! > 0) {
+      const res = await axios.post("/api/explorer", {
+        action: "createFile",
+        filePath: `${activeFilePath}/${newVal}`,
+      });
+      if (res.status == 200) {
+        setActiveFilePath(res.data.path);
+        console.log(res);
+
+        // setCreatNewModel
+        setRootDir(addFileToDir(rootDir!, res.data.path!, rootDir?.path!));
+      }
+      setActiveFilePath(activeFilePath);
+      setNewVal(null);
     }
-    setActiveFolderPath(activeFolderPath);
-    setNewVal(null);
     setCreateNewFile(false);
   }
 
@@ -94,19 +130,41 @@ const FileBrowser = () => {
     );
   };
 
+  async function handleDelete() {
+    if (fileType == "File") {
+      const res = await axios.post("/api/explorer", {
+        action: "rmFile",
+        filePath: activeFilePath,
+      });
+      const newRootDir = removeDirFromRoot(rootDir!, activeFilePath!);
+      setRootDir(newRootDir);
+      console.log(res);
+    } else {
+      const res = await axios.post("/api/explorer", {
+        action: "clearDir",
+        filePath: activeFilePath,
+      });
+      console.log(res);
+      if (res.status == 200) {
+        // const newRootDir = removeDirFromRoot(rootDir!,activeFilePath!)
+      }
+    }
+    handleClose();
+  }
+
   const handleClose = () => {
     setContextMenu(null);
   };
 
   return (
     <div
-      onContextMenu={(e) => {
-        handleContextMenu(e);
-      }}
+      // onContextMenu={(e) => {
+      //   handleContextMenu(e);
+      // }}
       style={{ cursor: "context-menu" }}
     >
       {/* Context Menu */}
-      <Menu
+      {/* <Menu
         open={contextMenu !== null}
         onClose={handleClose}
         anchorReference="anchorPosition"
@@ -119,31 +177,47 @@ const FileBrowser = () => {
         <MenuItem
           onClick={() => {
             setRename(true);
-            console.log(rename);
-            
+            console.log(rename, "fr filebrowser");
+
             handleClose();
           }}
         >
           Rename
         </MenuItem>
-        <MenuItem onClick={handleClose}>Copy</MenuItem>
-        <MenuItem onClick={handleClose}>Move</MenuItem>
-        <MenuItem onClick={handleClose}>Delete</MenuItem>
-      </Menu>
+        {pasteContext?
+        <MenuItem
+          onClick={() => {
+            handleClose();
+            handlePaste();
+          }}
+        >
+          Paste
+        </MenuItem>:""}
+        <MenuItem
+          onClick={async () => {
+            setFileActionType('Copy')
+            setPasteContext(true)
+            handleClose();
+          }}
+        >
+          Copy
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setFileActionType('Move')
+            setPasteContext(true)
+            handleClose();
+          }}
+        >
+          Move
+        </MenuItem>
+        <MenuItem onClick={handleDelete}>Delete</MenuItem>
+      </Menu> */}
       <List>
         {[rootDir]?.map((file: FileItem, index: number) => (
           <ListItem key={index}>
             {file.isDirectory ? (
-              <Folder
-                files={[file]}
-                activeFolderPath={activeFolderPath}
-                setActiveFolderPath={setActiveFolderPath}
-                newVal={null}
-                setNewVal={setNewVal}
-                handleCreateNew={handleCreateNew}
-                rename={rename}
-                setRename={setRename}
-              />
+              <Folder files={[file]} handleCreateNew={handleCreateNew} />
             ) : (
               <File file={file} />
             )}

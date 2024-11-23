@@ -1,17 +1,18 @@
 import { useExplorerContext } from "@/contexts/ExplorerContext";
+import { useFileBrowserContext } from "@/contexts/FileBrowserContext";
 import { Add, FileCopy, Folder, Refresh } from "@mui/icons-material";
 import { Box, IconButton } from "@mui/material";
 import axios from "axios";
 import React from "react";
 
-function ToolBar() {
+function ToolBar({folderActive,toggleActive}:{folderActive:boolean,toggleActive:()=>void}) {
   const {
-    curExDir,
     setCreateNewFile,
     setCreateNewFolder,
     rootDir,
     setRootDir,
   } = useExplorerContext();
+  const{activeFilePath}=useFileBrowserContext()
   return (
     <Box
       sx={{
@@ -22,7 +23,10 @@ function ToolBar() {
     >
       <IconButton
         onClick={() => {
-          console.log(curExDir);
+          console.log(activeFilePath);
+          if (!folderActive) {
+            toggleActive()
+          }
           setCreateNewFolder(false);
           setCreateNewFile(true);
         }}
@@ -31,6 +35,9 @@ function ToolBar() {
       </IconButton>
       <IconButton
         onClick={() => {
+        if (!folderActive) {
+          toggleActive()
+        }
           setCreateNewFile(false);
           setCreateNewFolder(true);
         }}

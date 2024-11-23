@@ -15,7 +15,12 @@ export default async function handler(
     return;
   }
 
-  const fullPath = path.join(BASE_DIR, filePath || "");
+  let fullPath;
+  if (filePath?.startsWith("/tmp")) {
+    fullPath = filePath;
+  } else {
+    fullPath = path.join(BASE_DIR, filePath || "");
+  }
 
   try {
     if (action === "read") {
@@ -29,11 +34,20 @@ export default async function handler(
     } else if (action === "createFile") {
       // Create a new file
       await createFile(fullPath, content || "");
-      res.status(200).json({ message: "File created successfully" });
+      res.status(200).json({ message: "File created successfully" , path: fullPath});
+    }else if (action === "rmFile") {
+      // Deket a file
+      const fileExists = fs.existsSync(fullPath)
+      if (fileExists) {
+        fs.unlinkSync(filePath)
+        res.status(200).json({ message: "File deleted successfully" , path: fullPath});
+      }else{
+        res.status(400).json({ message: "File deletion failed" });
+      }
     } else if (action === "createDir") {
       // Create a new directory
       await createDir(fullPath);
-      res.status(200).json({ message: "Directory created successfully" });
+      res.status(200).json({ message: "Directory created successfully" ,path:fullPath});
     } else if (action === "writeFiles" && Array.isArray(content)) {
       try {
         // Write multiple files
@@ -158,7 +172,7 @@ export default async function handler(
         }
       };
       try {
-        clearDirectory(filePath);
+        clearDirectory(fullPath);
         res.status(200).json({ message: "Directory cleared successfully" });
       } catch (error) {
         console.error("Error clearing directory:", error);

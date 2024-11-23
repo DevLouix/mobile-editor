@@ -4,7 +4,8 @@ import { ModalProvider } from "@/contexts/ModalContext";
 import "@/styles/globals.css";
 import { SessionProvider } from "next-auth/react";
 import type { AppProps } from "next/app";
-import '../styles/monaco.css'
+import "../styles/monaco.css";
+import { FileBrowserContextProvider } from "@/contexts/FileBrowserContext";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -12,9 +13,11 @@ export default function App({ Component, pageProps }: AppProps) {
       {" "}
       <EditorLayoutContextProvider>
         <ExplorerContextProvider>
-          <ModalProvider>
-            <Component {...pageProps} />
-          </ModalProvider>
+          <FileBrowserContextProvider>
+            <ModalProvider>
+              <Component {...pageProps} />
+            </ModalProvider>
+          </FileBrowserContextProvider>
         </ExplorerContextProvider>
       </EditorLayoutContextProvider>
     </SessionProvider>

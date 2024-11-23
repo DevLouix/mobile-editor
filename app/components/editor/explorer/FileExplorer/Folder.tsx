@@ -6,35 +6,38 @@ import {
   FolderCopy,
 } from "@mui/icons-material";
 import { Box, List, ListItem, TextField, Typography } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import File from "./File";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
 import ToolBar from "./ToolBar";
+import { useFileBrowserContext } from "@/contexts/FileBrowserContext";
+import FileContextMenu from "./FileContextMenu";
 
 const Folder = ({
   files,
-  parentFolderPath = "",
-  activeFolderPath,
-  setActiveFolderPath,
-  newVal,
-  setNewVal,
   handleCreateNew,
-  rename,
-  setRename,
 }: {
   files: FileItem[];
-  parentFolderPath?: string;
-  newVal: string | null;
-  setNewVal: React.Dispatch<React.SetStateAction<string | null>>;
-  rename: boolean;
-  setRename: React.Dispatch<React.SetStateAction<boolean>>;
-  activeFolderPath: string | null;
-  setActiveFolderPath: React.Dispatch<React.SetStateAction<string | null>>;
   handleCreateNew: () => {};
 }) => {
-  const [folderVisibility, setFolderVisibility] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const {
+    activeFilePath,
+    setActiveFilePath,
+    newVal,
+    setNewVal,
+    rename,
+    setRename,
+    renameVal,
+    setRenameVal,
+    currentFile,
+    setCurrentFile,
+    setFileType,
+    folderVisibility,
+    toggleSubFolder,
+    handleRename,
+    handleContextMenu,
+  } = useFileBrowserContext();
+
   const {
     rootDir,
     createNewFile,
@@ -43,19 +46,13 @@ const Folder = ({
     setCreateNewFolder,
   } = useExplorerContext();
 
-  // Toggle visibility of subfolders
-  const toggleSubFolder = (folderPath: string) => {
-    setFolderVisibility((prevState) => ({
-      ...prevState,
-      [folderPath]: !prevState[folderPath],
-    }));
-  };
-
   // Handle folder click (set it as active folder)
   const handleFolderClick = (file: FileItem, path: string) => {
-    setActiveFolderPath(path); // Set the folder path as active
-    // console.log(file.path,activeFolderPath);
-    
+    setFileType("Folder");
+    setActiveFilePath(path); // Set the folder path as active
+    setCurrentFile(file);
+    // console.log(file.path,activeFilePath);
+
     setCreateNewFile(false);
     setCreateNewFolder(false);
     setNewVal(""); // Reset the "new directory" input value
@@ -63,11 +60,14 @@ const Folder = ({
   };
 
   return (
-    <ul>
+    <ul
+      onContextMenu={(e) => {
+        handleContextMenu(e);
+      }}
+      style={{ cursor: "context-menu" }}
+    >
       {files.map((file, index) => {
-        const fullPath = parentFolderPath
-          ? `${parentFolderPath}/${file.name}`
-          : file.name;
+        const fullPath = file.path;
 
         return (
           <List sx={{ p: 0 }} key={index}>
@@ -82,6 +82,8 @@ const Folder = ({
             >
               {file.isDirectory ? (
                 <>
+                  <FileContextMenu file={file} />
+
                   {/* Check if its the root folder */}
                   {file.name == rootDir?.name ? (
                     <Box
@@ -93,7 +95,7 @@ const Folder = ({
                         gap: "2px",
                         p: 0,
                         backgroundColor:
-                          activeFolderPath === fullPath
+                          activeFilePath === fullPath
                             ? "#070707"
                             : "transparent", // Highlight active folder
                         cursor: "pointer",
@@ -114,7 +116,12 @@ const Folder = ({
                         )}
                         <Typography variant="body2">{file.name}</Typography>
                       </Box>
-                      <ToolBar />
+                      <ToolBar
+                        folderActive={folderVisibility[activeFilePath!]}
+                        toggleActive={() => {
+                          toggleSubFolder(activeFilePath!);
+                        }}
+                      />
                     </Box>
                   ) : (
                     <Box
@@ -124,10 +131,11 @@ const Folder = ({
                         gap: "2px",
                         p: 0,
                         backgroundColor:
-                          activeFolderPath === fullPath
+                          activeFilePath === fullPath
                             ? "#f0f0f0"
                             : "transparent", // Highlight active folder
                         cursor: "pointer",
+                        userSelect: "none",
                       }}
                       onClick={() => handleFolderClick(file, fullPath)} // Set active folder on click
                     >
@@ -136,13 +144,32 @@ const Folder = ({
                       ) : (
                         <ArrowRight />
                       )}
-                      {rename &&
-                          activeFolderPath === fullPath ? (
+                      {rename && activeFilePath === fullPath ? (
                         <TextField
+                          //focused
+                          autoFocus
                           value={newVal}
+                          variant="outlined"
+                          sx={{ input: { color: "black" } }}
+                          slotProps={{
+                            input: {
+                              style: { height: "20px", fontSize: "15px" },
+                            },
+                          }}
+                          onFocus={() => {
+                            setRenameVal(file.name);
+                            setNewVal(file.name);
+                            setRename(true);
+                          }}
                           onChange={(e) => {
                             setNewVal(e.currentTarget.value);
                           }}
+                          onKeyDown={(e) => {
+                            if (e.key == "Enter") {
+                              handleRename();
+                            }
+                          }}
+                          onBlur={handleRename}
                         />
                       ) : (
                         <Typography variant="body1">{file.name}</Typography>
@@ -155,7 +182,7 @@ const Folder = ({
                     <Box p={1}>
                       {/* Show the "Create New" input only for the active folder */}
                       {(createNewFile || createNewFolder) &&
-                      activeFolderPath === fullPath ? (
+                      activeFilePath === fullPath ? (
                         <Box
                           sx={{
                             display: "flex",
@@ -198,13 +225,6 @@ const Folder = ({
                       <Box>
                         <Folder
                           files={file.children}
-                          parentFolderPath={fullPath} // Pass the full path to children
-                          activeFolderPath={activeFolderPath} // Pass the active folder state
-                          setActiveFolderPath={setActiveFolderPath} // Pass the setter function to children
-                          newVal={newVal}
-                          setNewVal={setNewVal}
-                          rename={rename}
-                          setRename={setRename}
                           handleCreateNew={handleCreateNew}
                         />
                       </Box>
