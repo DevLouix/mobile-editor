@@ -19,7 +19,7 @@ export default async function handler(
   if (filePath?.startsWith("/tmp")) {
     fullPath = filePath;
   } else {
-    fullPath = path.join(BASE_DIR, filePath || "");
+    fullPath = path.join(BASE_DIR, filePath);
   }
 
   try {
@@ -39,15 +39,69 @@ export default async function handler(
       // Deket a file
       const fileExists = fs.existsSync(fullPath)
       if (fileExists) {
-        fs.unlinkSync(filePath)
+        fs.unlinkSync(fullPath)
         res.status(200).json({ message: "File deleted successfully" , path: fullPath});
       }else{
         res.status(400).json({ message: "File deletion failed" });
       }
+    } else if (action === "clearDir") {
+      // Clear directory content
+      await clearDirectory(fullPath);
+      res.status(200).json({ message: "Directory cleared successfully", path: fullPath });
     } else if (action === "createDir") {
       // Create a new directory
       await createDir(fullPath);
       res.status(200).json({ message: "Directory created successfully" ,path:fullPath});
+    }else if (action === "rename") {
+      try {
+        if (!newName) {
+          res.status(400).json({ error: "New name is required for renaming." });
+          return;
+        }
+
+        // Construct the new path with the new name
+        const newPath = path.join(path.dirname(fullPath), newName);
+
+        // Rename file or folder
+        fs.renameSync(fullPath, newPath);
+
+        res.status(200).json({
+          message: `Renamed successfully to ${newName}`,
+          oldPath: fullPath,
+          newPath,
+        });
+      } catch (renameError: any) {
+        console.error("Error during renaming:", renameError);
+        res
+          .status(500)
+          .json({ error: `Failed to rename: ${renameError.message}` });
+      }
+    } else if (action === "delete") {
+      try {
+        if (!fs.existsSync(fullPath)) {
+          res.status(404).json({ error: "File or folder does not exist." });
+          return;
+        }
+
+        const stats = fs.statSync(fullPath);
+
+        if (stats.isDirectory()) {
+          // Delete folder recursively
+          fs.rmSync(fullPath, { recursive: true, force: true });
+        } else {
+          // Delete file
+          fs.unlinkSync(fullPath);
+        }
+
+        res
+          .status(200)
+          .json({ message: "Deleted successfully.", path: fullPath });
+      } catch (deleteError: any) {
+        console.error("Error during deletion:", deleteError);
+        res
+          .status(500)
+          .json({ error: `Failed to delete: ${deleteError?.message}` });
+      }
     } else if (action === "writeFiles" && Array.isArray(content)) {
       try {
         // Write multiple files
@@ -105,78 +159,6 @@ export default async function handler(
         console.error("Error generating directory structure:", error);
 
         res.status(500).json({ error: error.message });
-      }
-    } else if (action === "rename") {
-      try {
-        if (!newName) {
-          res.status(400).json({ error: "New name is required for renaming." });
-          return;
-        }
-
-        // Construct the new path with the new name
-        const newPath = path.join(path.dirname(fullPath), newName);
-
-        // Rename file or folder
-        fs.renameSync(fullPath, newPath);
-
-        res.status(200).json({
-          message: `Renamed successfully to ${newName}`,
-          oldPath: fullPath,
-          newPath,
-        });
-      } catch (renameError: any) {
-        console.error("Error during renaming:", renameError);
-        res
-          .status(500)
-          .json({ error: `Failed to rename: ${renameError.message}` });
-      }
-    } else if (action === "delete") {
-      try {
-        if (!fs.existsSync(fullPath)) {
-          res.status(404).json({ error: "File or folder does not exist." });
-          return;
-        }
-
-        const stats = fs.statSync(fullPath);
-
-        if (stats.isDirectory()) {
-          // Delete folder recursively
-          fs.rmSync(fullPath, { recursive: true, force: true });
-        } else {
-          // Delete file
-          fs.unlinkSync(fullPath);
-        }
-
-        res
-          .status(200)
-          .json({ message: "Deleted successfully.", path: fullPath });
-      } catch (deleteError: any) {
-        console.error("Error during deletion:", deleteError);
-        res
-          .status(500)
-          .json({ error: `Failed to delete: ${deleteError?.message}` });
-      }
-    } else if (action === "clearDir") {
-      const clearDirectory = (dirPath: string) => {
-        if (fs.existsSync(dirPath)) {
-          const files = fs.readdirSync(dirPath);
-          files.forEach((file) => {
-            const filePath = path.join(dirPath, file);
-            if (fs.statSync(filePath).isDirectory()) {
-              clearDirectory(filePath);
-            } else {
-              fs.unlinkSync(filePath);
-            }
-          });
-          fs.rmdirSync(dirPath);
-        }
-      };
-      try {
-        clearDirectory(fullPath);
-        res.status(200).json({ message: "Directory cleared successfully" });
-      } catch (error) {
-        console.error("Error clearing directory:", error);
-        res.status(500).json({ error: "Failed to clear directory" });
       }
     } else {
       res.status(400).json({ error: "Invalid action" });
@@ -240,4 +222,13 @@ function getSortedDirectoryStructure(dir: string): any[] {
 
   // Combine sorted directories and files
   return [...directories, ...files];
+}
+
+function clearDirectory(dirPath: string) {
+  if (!fs.existsSync(dirPath)) {
+    console.error(`Directory does not exist: ${dirPath}`);
+    return;
+  }
+
+  fs.rmSync(dirPath, { recursive: true, force: true });
 }

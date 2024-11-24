@@ -6,7 +6,7 @@ import { Menu, MenuItem } from "@mui/material";
 import axios from "axios";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-function FileContextMenu({file}:{file:FileItem}) {
+function FileContextMenu() {
   const {
     rootDir,
     setRootDir,
@@ -18,7 +18,8 @@ function FileContextMenu({file}:{file:FileItem}) {
 
   const {
     activeFilePath,
-    setActiveFilePath,
+    setCopyPath,
+    setMovePath,
     newVal,
     setNewVal,
     rename,
@@ -37,9 +38,9 @@ function FileContextMenu({file}:{file:FileItem}) {
 
 
   async function handleDelete() {
-    if (fileType == "File") {
+    if (fileType == "Folder") {
       const res = await axios.post("/api/explorer", {
-        action: "rmFile",
+        action: "clearDir",
         filePath: activeFilePath,
       });
       const newRootDir = removeDirFromRoot(rootDir!, activeFilePath!);
@@ -47,7 +48,7 @@ function FileContextMenu({file}:{file:FileItem}) {
       console.log(res);
     } else {
       const res = await axios.post("/api/explorer", {
-        action: "clearDir",
+        action: "rmFile",
         filePath: activeFilePath,
       });
       console.log(res);
@@ -59,10 +60,10 @@ function FileContextMenu({file}:{file:FileItem}) {
   }
 
   const handleClose = () => {
-    console.log(file);
     
     setContextMenu(null);
   };
+
 
   return (
     <div>
@@ -102,6 +103,7 @@ function FileContextMenu({file}:{file:FileItem}) {
         <MenuItem
           onClick={async () => {
             setFileActionType("Copy");
+            setCopyPath(activeFilePath)
             setPasteContext(true);
             handleClose();
           }}
@@ -111,6 +113,7 @@ function FileContextMenu({file}:{file:FileItem}) {
         <MenuItem
           onClick={() => {
             setFileActionType("Move");
+            setMovePath(activeFilePath)
             setPasteContext(true);
             handleClose();
           }}

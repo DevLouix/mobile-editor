@@ -1,102 +1,85 @@
-import React, { ReactNode, useState } from "react";
-import { TextField, Button, Menu, MenuItem, FormControl, InputLabel, Select, FormHelperText, Typography, Divider, Box, SelectChangeEvent } from "@mui/material";
+import React, { ReactNode, useEffect, useState } from "react";
+import {
+  TextField,
+  Button,
+  Menu,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  FormHelperText,
+  Typography,
+  Divider,
+  Box,
+  SelectChangeEvent,
+  CircularProgress,
+} from "@mui/material";
+import GitBranch from "./Menus/GitBranch";
+import GitCommit from "./Menus/GitCommit";
+import GitPush from "./Menus/GitPush";
+import { useGitContext } from "@/contexts/Explorer /GitContext";
+import GitInit from "./Menus/GitInit";
+import axios from "axios";
+import { useExplorerContext } from "@/contexts/ExplorerContext";
+import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
 
 // GitActionsMenu Component
 const GitActionsMenu = () => {
-  // States for commit, branch, and git actions
-  const [commitMessage, setCommitMessage] = useState("");
-  const [branch, setBranch] = useState("");
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const { branch, branches, repo, setBranches, setBranch } = useGitContext();
+  const { sessionType } = useEditorLayoutContext();
+  const [branchFetched, setBranchFetched] = useState(false);
 
-  // For handling Menu (Branch Dropdown)
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  async function fetchBranches() {
+    try {
+      const res = await axios.get(repo?.branches_url.replace("{/branch}", "")!);
+      console.log(res);
 
-  // Commit Message Handler
-  const handleCommitChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCommitMessage(event.target.value);
-  };
+      if (res.status === 200) {
+        setBranch(res.data[0]);
+        setBranches(res.data);
+        setBranchFetched(true)
+      }
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+    }
+  }
 
-  // Branch Selection Handler
-  const handleBranchChange = (event: SelectChangeEvent<string>, child: ReactNode)  => {
-    setBranch(event.target.value as string);
-  };
-
-  // Handle Commit Action (Placeholder)
-  const handleCommit = () => {
-    console.log("Commit message:", commitMessage);
-    // Add logic to handle commit action here
-  };
-
-  // Handle Push Action (Placeholder)
-  const handlePush = () => {
-    console.log("Pushing changes...");
-    // Add logic to handle push action here
-  };
-
-  // Handle Branch Action (Placeholder)
-  const handleBranchAction = () => {
-    console.log("Selected Branch:", branch);
-    // Add logic to handle branch action here
-  };
+  useEffect(() => {
+    console.log(branches);
+    if (sessionType === "git") {
+      // Check if branches is empty
+      if (branches == null) {
+        console.log(branches);
+        fetchBranches(); // Fetch branches if the array is empty
+      }
+     !branchFetched?setBranchFetched(true):""
+    }
+  }, [sessionType, branches]);
 
   return (
     <Box p={2} maxWidth={400} mx="auto">
-      {/* Commit Section */}
-      <Typography variant="body2" gutterBottom>
-        Commit Changes
-      </Typography>
-      <TextField
-        label="Commit Message"
-        variant="outlined"
-        fullWidth
-        value={commitMessage}
-        onChange={handleCommitChange}
-        helperText="Enter your commit message"
-        margin="normal"
-      />
-      <Button variant="contained" color="primary" fullWidth onClick={handleCommit}>
-        Commit
-      </Button>
+      {branchFetched ? (
+        <>
+          {branch ? (
+            <Box>
+              <GitBranch />
 
-      <Divider sx={{ my: 2 }} />
+              <Divider sx={{ my: 2 }} />
 
-      {/* Push Section */}
-      <Typography variant="body2" gutterBottom>
-        Push Changes
-      </Typography>
-      <Button variant="contained" color="success" fullWidth onClick={handlePush}>
-        Push
-      </Button>
+              <GitCommit />
 
-      <Divider sx={{ my: 2 }} />
-
-      {/* Branch Section */}
-      <Typography variant="body2" gutterBottom>
-        Select Branch
-      </Typography>
-      <FormControl fullWidth margin="normal">
-        <InputLabel>Branch</InputLabel>
-        <Select
-          value={branch}
-          onChange={handleBranchChange}
-          label="Branch"
-          fullWidth
-        >
-          <MenuItem value="main">main</MenuItem>
-          <MenuItem value="dev">dev</MenuItem>
-          <MenuItem value="feature-xyz">feature-xyz</MenuItem>
-          <MenuItem value="bugfix-123">bugfix-123</MenuItem>
-        </Select>
-        <FormHelperText>Select a branch to work with</FormHelperText>
-      </FormControl>
-      <Button variant="contained" color="secondary" fullWidth onClick={handleBranchAction}>
-        Switch Branch
-      </Button>
+              <Divider sx={{ my: 2 }} />
+              <GitPush />
+            </Box>
+          ) : (
+            <>
+              <GitInit />
+            </>
+          )}
+        </>
+      ) : (
+        <CircularProgress />
+      )}
     </Box>
   );
 };

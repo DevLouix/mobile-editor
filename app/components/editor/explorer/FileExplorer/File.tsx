@@ -3,7 +3,7 @@ import { useExplorerContext } from "@/contexts/ExplorerContext";
 import { useFileBrowserContext } from "@/contexts/FileBrowserContext";
 import { FileItem } from "@/types/main";
 import { FileCopy } from "@mui/icons-material";
-import { List, ListItem, TextField, Typography } from "@mui/material";
+import { Box, List, ListItem, TextField, Typography } from "@mui/material";
 import axios from "axios";
 import React from "react";
 
@@ -21,10 +21,16 @@ const File = ({ file }: { file: FileItem }) => {
     setCurrentFile,
     newVal,
     setNewVal,
+    handleContextMenu
   } = useFileBrowserContext();
 
   return (
     <ListItem
+    onContextMenu={
+      activeFilePath === file.path
+        ? (e) => handleContextMenu(e, file.path)
+        : (e)=>{setFileType('File');setActiveFilePath(file.path);handleContextMenu(e, file.path)}
+    }
       sx={{ backgroundColor: activeFilePath == file.path ? "white" : "" }}
     >
       {rename && activeFilePath === file.path ? (
@@ -55,13 +61,14 @@ const File = ({ file }: { file: FileItem }) => {
           onBlur={handleRename}
         />
       ) : (
-        <ListItem
+        <Box
           key={file.name}
           sx={{
             display: "flex",
             flexDirection: "row",
             gap: "2px",
             p: 0,
+            userSelect: "none"
           }}
           onClick={async () => {
             setFileType("File");
@@ -101,7 +108,7 @@ const File = ({ file }: { file: FileItem }) => {
         >
           <FileCopy sx={{ width: "10px", height: "10px" }} />
           <Typography variant="body2">{file.name}</Typography>
-        </ListItem>
+        </Box>
       )}
     </ListItem>
   );

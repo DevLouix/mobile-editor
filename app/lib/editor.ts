@@ -1,5 +1,6 @@
 import { FileItem } from "@/types/main";
 import axios from "axios";
+import path from "path";
 
 interface MonacoModelContent {
   filePath: string;
@@ -72,7 +73,7 @@ export const addFileToDir = (
 ): FileItem => {
   const segments = dirPath.replace(parentPath, "").split("/").filter(Boolean); // Split the path into segments
   const name = segments[0]; // Get the first segment (current directory name)
-console.log(parentPath);
+  console.log(parentPath);
 
   console.log("Adding dir:", name, "to parentPath:", parentPath);
 
@@ -88,7 +89,7 @@ console.log(parentPath);
         isDirectory: false,
         path: currentPath,
         children: [],
-        content:""
+        content: "",
       };
       rootDir.children = [...(rootDir.children || []), newFile]; // Add the new directory
     }
@@ -140,62 +141,86 @@ export const renameDirItem = (
   }
 
   return rootDir;
-};
-
-export const moveItem = (
+}; 
+export const copyItemToDir = (
   rootDir: FileItem,
-  itemPath: string,
-  newParentPath: string
+  srcPath: string,
+  destDirPath: string
 ): FileItem => {
-  const item = findItemByPath(rootDir, itemPath);
-  const newParent = findItemByPath(rootDir, newParentPath);
+  const srcItem = findItemByPath(rootDir, srcPath);
+  const destDir = findItemByPath(rootDir, destDirPath);
 
-  if (item && newParent) {
-    // Remove the item from its current parent
-    removeItemFromParent(rootDir, item);
+  if (!srcItem) throw new Error(`Source item not found at path: ${srcPath}`);
+  if (!destDir || !destDir.isDirectory)
+    throw new Error(`Destination directory not found at path: ${destDirPath}`);
 
-    // Update the item's path
-    const newPath = `${newParent.path}/${item.name}`;
-    item.path = newPath;
-
-    // Add the item to the new parent's children
-    newParent.children = [...(newParent.children || []), item];
+  // Check if an item with the same name already exists in the destination directory
+  if (destDir.children?.some((child) => child.name === srcItem.name)) {
+    throw new Error(
+      `Item with name "${srcItem.name}" already exists in the destination directory.`
+    );
   }
 
-  return rootDir;
+  // Deep clone the source item to avoid mutation
+  const copiedItem = JSON.parse(JSON.stringify(srcItem));
+  destDir.children = [...(destDir.children || []), copiedItem];
+
+  return rootDir; // Return updated root directory structure
 };
 
-export const copyItem = (
+export const moveItemToDir = (
   rootDir: FileItem,
-  itemPath: string,
-  newParentPath: string
+  srcPath: string,
+  destDirPath: string
 ): FileItem => {
-  const item = findItemByPath(rootDir, itemPath);
-  const newParent = findItemByPath(rootDir, newParentPath);
+  const srcItem = findItemByPath(rootDir, srcPath);
+  const destDir = findItemByPath(rootDir, destDirPath);
 
-  if (item && newParent) {
-    const copy = deepCopyItem(item, newParentPath);
+  if (!srcItem) throw new Error(`Source item not found at path: ${srcPath}`);
+  if (!destDir || !destDir.isDirectory)
+    throw new Error(`Destination directory not found at path: ${destDirPath}`);
 
-    // Add the copied item to the new parent's children
-    newParent.children = [...(newParent.children || []), copy];
+  // Check if an item with the same name already exists in the destination directory
+  if (destDir.children?.some((child) => child.name === srcItem.name)) {
+    throw new Error(
+      `Item with name "${srcItem.name}" already exists in the destination directory.`
+    );
   }
 
-  return rootDir;
+  // Remove the source item from its parent
+  removeItemFromParent(rootDir, srcItem);
+
+  // Update the path of the moved item to reflect its new location
+  srcItem.path = `${destDir.path}/${srcItem.name}`;
+  destDir.children = [...(destDir.children || []), srcItem];
+
+  return rootDir; // Return updated root directory structure
 };
 
-// Helper function to deeply copy a file or directory
-const deepCopyItem = (item: FileItem, newParentPath: string): FileItem => {
-  const newItem: FileItem = {
-    ...item,
-    path: `${newParentPath}/${item.name}`,
-    children: item.isDirectory
-      ? item.children?.map(child => deepCopyItem(child, `${newParentPath}/${item.name}`))
-      : [],
-  };
+// Helper function to find or create a directory based on the segments provided
+const findOrCreateDir = (
+  rootDir: FileItem,
+  destSegments: string[]
+): FileItem => {
+  let currentDir = rootDir;
 
-  return newItem;
+  // Traverse or create directories based on the segments
+  destSegments.forEach((segment) => {
+    let nextDir = currentDir.children?.find((child) => child.name === segment);
+    if (!nextDir) {
+      nextDir = {
+        name: segment,
+        isDirectory: true,
+        path: `${currentDir.path}/${segment}`,
+        children: [],
+      };
+      currentDir.children = [...(currentDir.children || []), nextDir]; // Add new directory
+    }
+    currentDir = nextDir; // Move deeper into the directory structure
+  });
+
+  return currentDir;
 };
-
 
 // Helper function to remove item from its parent
 const removeItemFromParent = (rootDir: FileItem, item: FileItem) => {
@@ -203,19 +228,23 @@ const removeItemFromParent = (rootDir: FileItem, item: FileItem) => {
   while (stack.length > 0) {
     const current = stack.pop();
     if (current?.children) {
-      const index = current.children.findIndex(child => child.path === item.path);
+      const index = current.children.findIndex(
+        (child) => child.path === item.path
+      );
       if (index >= 0) {
         current.children.splice(index, 1);
         return;
       }
-      current.children.forEach(child => stack.push(child));
+      current.children.forEach((child) => stack.push(child));
     }
   }
 };
 
-
 // Helper function to find item by its path
-const findItemByPath = (rootDir: FileItem, path: string): FileItem | undefined => {
+const findItemByPath = (
+  rootDir: FileItem,
+  path: string
+): FileItem | undefined => {
   const stack: FileItem[] = [rootDir];
   while (stack.length > 0) {
     const current = stack.pop();
@@ -223,11 +252,10 @@ const findItemByPath = (rootDir: FileItem, path: string): FileItem | undefined =
       return current;
     }
 
-    current?.children?.forEach(child => stack.push(child));
+    current?.children?.forEach((child) => stack.push(child));
   }
   return undefined;
 };
-
 
 export const removeDirFromRoot = (
   rootDir: FileItem,

@@ -6,7 +6,7 @@ import {
   FolderCopy,
 } from "@mui/icons-material";
 import { Box, List, ListItem, TextField, Typography } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import File from "./File";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
 import ToolBar from "./ToolBar";
@@ -23,6 +23,8 @@ const Folder = ({
   const {
     activeFilePath,
     setActiveFilePath,
+    contextMenuPath,
+    setContextMenu,
     newVal,
     setNewVal,
     rename,
@@ -60,12 +62,7 @@ const Folder = ({
   };
 
   return (
-    <ul
-      onContextMenu={(e) => {
-        handleContextMenu(e);
-      }}
-      style={{ cursor: "context-menu" }}
-    >
+    <ul style={{ cursor: "context-menu" }}>
       {files.map((file, index) => {
         const fullPath = file.path;
 
@@ -79,11 +76,10 @@ const Folder = ({
                 alignItems: "flex-start",
                 p: 0,
               }}
-            >
+            >              
               {file.isDirectory ? (
-                <>
-                  <FileContextMenu file={file} />
-
+                <Box
+                >
                   {/* Check if its the root folder */}
                   {file.name == rootDir?.name ? (
                     <Box
@@ -137,6 +133,11 @@ const Folder = ({
                         cursor: "pointer",
                         userSelect: "none",
                       }}
+                      onContextMenu={
+                        activeFilePath === file.path
+                          ? (e) => handleContextMenu(e, file.path)
+                          : (e)=>{setFileType('Folder');setActiveFilePath(file.path);handleContextMenu(e, file.path)}
+                      }
                       onClick={() => handleFolderClick(file, fullPath)} // Set active folder on click
                     >
                       {folderVisibility[fullPath] ? (
@@ -230,7 +231,7 @@ const Folder = ({
                       </Box>
                     </Box>
                   ) : null}
-                </>
+                </Box>
               ) : (
                 <File file={file} />
               )}

@@ -1,6 +1,6 @@
 // context/FileBrowserContext.tsx
 import Modal from "@/components/Modal";
-import { renameDirItem } from "@/lib/editor";
+import { copyItemToDir, moveItemToDir, renameDirItem } from "@/lib/editor";
 import { FileItem } from "@/types/main";
 import axios from "axios";
 import React, {
@@ -21,8 +21,8 @@ interface FileBrowserContextType {
   setPasteContext: Dispatch<SetStateAction<boolean>>;
   copyPath: string | null;
   setCopyPath: Dispatch<SetStateAction<string | null>>;
-  copyPastePath: string | null;
-  setCopyPastePath: Dispatch<SetStateAction<string | null>>;
+  contextMenuPath: string | null;
+  setContextMenuPath: Dispatch<SetStateAction<string | null>>;
   movePath: string | null;
   setMovePath: Dispatch<SetStateAction<string | null>>;
   movePastePath: string | null;
@@ -56,7 +56,7 @@ interface FileBrowserContextType {
   handleCopy: () => void;
   handleMove: () => void;
   handlePaste: () => void;
-  handleContextMenu:(e:React.MouseEvent)=>void
+  handleContextMenu:(e:React.MouseEvent,path:string)=>void
 }
 
 const FileBrowserContext = createContext<FileBrowserContextType | undefined>(
@@ -70,7 +70,7 @@ export const FileBrowserContextProvider: React.FC<{ children: ReactNode }> = ({
   const [pasteContext, setPasteContext] = useState(false);
   const [fileActionType, setFileActionType] = useState<string | null>(null);
   const [copyPath, setCopyPath] = useState<string | null>(null);
-  const [copyPastePath, setCopyPastePath] = useState<string | null>(null);
+  const [contextMenuPath, setContextMenuPath] = useState<string | null>(null);
   const [movePath, setMovePath] = useState<string | null>(null);
   const [movePastePath, setMovePastePath] = useState<string | null>(null);
   const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
@@ -89,8 +89,11 @@ export const FileBrowserContextProvider: React.FC<{ children: ReactNode }> = ({
   const { rootDir, setRootDir } = useExplorerContext();
 
   // context menu
-  const handleContextMenu = (event: React.MouseEvent) => {
-    event.preventDefault();
+  const handleContextMenu = (event: React.MouseEvent,path:string) => {
+    event.preventDefault()
+   // setActiveFilePath(path)
+    console.log(path);
+    
     setContextMenu(
       contextMenu === null
         ? {
@@ -146,11 +149,28 @@ export const FileBrowserContextProvider: React.FC<{ children: ReactNode }> = ({
 
   async function handleCopy() {
     console.log("copy");
+    const res = await axios.post("api/explorer/copy",{
+      itemPath: copyPath,
+      newParentPath: activeFilePath
+    })
+    console.log(res);
+    if (res.status==200) {
+      setRootDir(copyItemToDir(rootDir!,res.data.itemPath,res.data.newParentPath))
+    }
+    
     setPasteContext(false);
   }
 
   async function handleMove() {
     console.log("move");
+    const res = await axios.post("api/explorer/move",{
+      itemPath: movePath,
+      newParentPath: activeFilePath
+    })
+    console.log(res);
+    if (res.status==200) {
+      setRootDir(moveItemToDir(rootDir!,res.data.itemPath,res.data.newParentPath))
+    }
     setPasteContext(false);
   }
 
@@ -171,8 +191,8 @@ export const FileBrowserContextProvider: React.FC<{ children: ReactNode }> = ({
         setRenameVal,
         copyPath,
         setCopyPath,
-        copyPastePath,
-        setCopyPastePath,
+        contextMenuPath,
+        setContextMenuPath,
         movePath,
         setMovePath,
         movePastePath,

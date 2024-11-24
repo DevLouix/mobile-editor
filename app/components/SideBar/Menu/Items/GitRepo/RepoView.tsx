@@ -5,19 +5,20 @@ import { useEffect, useState } from "react";
 import GitAuthView from "./AuthView";
 import { cloneRepo } from "@/lib/gitClient";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
+import { useGitContext } from "@/contexts/Explorer /GitContext";
 
 const Repositories: React.FC = () => {
   const { showRepoView, setSessionType, setSessionDir } =
     useEditorLayoutContext();
   const { setRootDir } = useExplorerContext();
+  const {setRepo} = useGitContext()
   const [repos, setRepos] = useState([]);
-  const [repoUrl, setRepoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRepos = async () => {
       const response = await fetch("/api/github/repos");
       const data = await response.json();
-      //console.log(data);
+      console.log(data);
       
       setRepos(data);
     };
@@ -28,7 +29,7 @@ const Repositories: React.FC = () => {
     //await fetchRepoUrl(repo.owner.name,repo.name)
     const res = await cloneRepo(repo.html_url, repo.name);
     if (res.status == 200) {
-      //console.log(res);
+      console.log(res);
 
       setRootDir(res.data.rootFolder);
       setSessionType("git");
@@ -44,7 +45,7 @@ const Repositories: React.FC = () => {
           <List>
             {repos.length > 0
               ? repos.map((repo: any) => (
-                  <ListItem onClick={() => importRepo(repo)}>
+                  <ListItem onClick={() =>{setRepo(repo);importRepo(repo)}}>
                     <Code sx={{ p: 1 }} />
                     <Box key={repo.id}>
                       <Typography fontWeight={"bold"}>{repo.name}</Typography>

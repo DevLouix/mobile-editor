@@ -8,6 +8,7 @@ import { FileCopy, FolderCopy } from "@mui/icons-material";
 import axios from "axios";
 import { useFileBrowserContext } from "@/contexts/FileBrowserContext";
 import { addDirToRoot, addFileToDir, removeDirFromRoot } from "@/lib/editor";
+import FileContextMenu from "./FileContextMenu";
 
 const FileBrowser = () => {
   const {
@@ -158,61 +159,9 @@ const FileBrowser = () => {
 
   return (
     <div
-      // onContextMenu={(e) => {
-      //   handleContextMenu(e);
-      // }}
       style={{ cursor: "context-menu" }}
-    >
-      {/* Context Menu */}
-      {/* <Menu
-        open={contextMenu !== null}
-        onClose={handleClose}
-        anchorReference="anchorPosition"
-        anchorPosition={
-          contextMenu !== null
-            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
-            : undefined
-        }
-      >
-        <MenuItem
-          onClick={() => {
-            setRename(true);
-            console.log(rename, "fr filebrowser");
-
-            handleClose();
-          }}
-        >
-          Rename
-        </MenuItem>
-        {pasteContext?
-        <MenuItem
-          onClick={() => {
-            handleClose();
-            handlePaste();
-          }}
-        >
-          Paste
-        </MenuItem>:""}
-        <MenuItem
-          onClick={async () => {
-            setFileActionType('Copy')
-            setPasteContext(true)
-            handleClose();
-          }}
-        >
-          Copy
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            setFileActionType('Move')
-            setPasteContext(true)
-            handleClose();
-          }}
-        >
-          Move
-        </MenuItem>
-        <MenuItem onClick={handleDelete}>Delete</MenuItem>
-      </Menu> */}
+    > 
+    <FileContextMenu />
       <List>
         {[rootDir]?.map((file: FileItem, index: number) => (
           <ListItem key={index}>
