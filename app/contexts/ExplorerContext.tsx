@@ -138,6 +138,7 @@ export const ExplorerContextProvider: React.FC<{
       setOpenFiles([]);
       setEditorInUse(false);
       setShowRepoView(true);
+      setRootDirInit(false)
       console.log("checking rerender");
     }
   }, [rootDir]);

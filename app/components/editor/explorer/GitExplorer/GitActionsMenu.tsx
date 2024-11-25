@@ -25,9 +25,16 @@ import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
 
 // GitActionsMenu Component
 const GitActionsMenu = () => {
-  const { branch, branches, repo, setBranches, setBranch } = useGitContext();
+  const {
+    branchFetched,
+    setBranchFetched,
+    branch,
+    branches,
+    repo,
+    setBranches,
+    setBranch,
+  } = useGitContext();
   const { sessionType } = useEditorLayoutContext();
-  const [branchFetched, setBranchFetched] = useState(false);
 
   async function fetchBranches() {
     try {
@@ -37,7 +44,7 @@ const GitActionsMenu = () => {
       if (res.status === 200) {
         setBranch(res.data[0]);
         setBranches(res.data);
-        setBranchFetched(true)
+        setBranchFetched(true);
       }
     } catch (error) {
       console.error("Error fetching branches:", error);
@@ -52,7 +59,6 @@ const GitActionsMenu = () => {
         console.log(branches);
         fetchBranches(); // Fetch branches if the array is empty
       }
-     !branchFetched?setBranchFetched(true):""
     }
   }, [sessionType, branches]);
 

@@ -4,7 +4,7 @@ import React from "react";
 import File from "./Items/File";
 import GitRepository from "./Items/GitRepo/Index";
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
-import Close from "./Items/Close";
+import Close from "./Items/CloseSession";
 import LocalStorage from "./Items/LocalStorage";
 
 function MenuButton() {

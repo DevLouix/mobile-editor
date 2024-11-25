@@ -12,7 +12,7 @@ export default async function handler(
     return res.status(401).json({ error: "Not authenticated" });
   }
 
-  const response = await fetch("https://api.github.com/user/repos", {
+  const response = await fetch("https://api.github.com/user/repos?per_page=100", {
     headers: {
       Authorization: `token ${session.accessToken}`,
     },

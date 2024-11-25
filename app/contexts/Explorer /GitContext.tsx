@@ -22,6 +22,10 @@ interface GitContextType {
   setBranch: Dispatch<SetStateAction<GitHubBranch | null>>;
   branches: GitHubBranch[] | null;
   setBranches: Dispatch<SetStateAction<GitHubBranch[] | null>>;
+  initializedEmptyGit: boolean;
+  setInitializedEmptyGit: Dispatch<SetStateAction<boolean>>;
+  branchFetched: boolean;
+  setBranchFetched: Dispatch<SetStateAction<boolean>>;
 }
 
 // Create the context
@@ -35,6 +39,8 @@ export const GitContextProvider = ({ children }: { children: ReactNode }) => {
   const [remote, setRemote] = useState<string>("origin");
   const [branch, setBranch] = useState<GitHubBranch | null>(null);
   const [branches, setBranches] = useState<GitHubBranch[] | null>(null);
+  const [branchFetched, setBranchFetched] = useState(false);
+  const [initializedEmptyGit, setInitializedEmptyGit] = useState(false);
 
   return (
     <GitContext.Provider
@@ -47,6 +53,10 @@ export const GitContextProvider = ({ children }: { children: ReactNode }) => {
         setBranch,
         branches,
         setBranches,
+        branchFetched,
+        setBranchFetched,
+        initializedEmptyGit,
+        setInitializedEmptyGit
       }}
     >
       {children}

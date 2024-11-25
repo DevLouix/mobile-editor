@@ -30,9 +30,9 @@ function SideBar() {
           }}
         >
           <MenuButton />
-          <FilesBtn />
           {editorInUse ? (
             <>
+              <FilesBtn />
               <GitActions />
             </>
           ) : (
