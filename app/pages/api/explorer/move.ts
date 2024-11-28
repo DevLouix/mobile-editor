@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({
         message: 'Item moved successfully',
         prevPath:itemPath,
-        newPath: destPath,
+        newPath: newParentPath,
       });
     } catch (error:any) {
       console.error('Error moving item:', error);

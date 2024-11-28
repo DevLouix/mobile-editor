@@ -1,4 +1,4 @@
-import { FileItem } from "@/types/main";
+import { FileItem, OpenFileItem } from "@/types/main";
 import React, {
   createContext,
   useContext,
@@ -13,10 +13,22 @@ interface EditorLayoutContextType {
   setEditorOnlyView: Dispatch<SetStateAction<boolean>>;
   editorInUse: boolean;
   setEditorInUse: Dispatch<SetStateAction<boolean>>;
+  models: Map<string, any>
+  setModels: Dispatch<SetStateAction<Map<string, any>>>;
   sessionType: string;
   setSessionType: Dispatch<SetStateAction<string>>;
-  openFiles: FileItem[]|null;
-  setOpenFiles: Dispatch<SetStateAction<FileItem[]|null>>;
+  editorToolbarView: number;
+  setEditorToolbarView: Dispatch<SetStateAction<number>>;
+  openFiles: OpenFileItem[]|null;
+  setOpenFiles: Dispatch<SetStateAction<OpenFileItem[]|null>>;
+  saveType: string|null;
+  setSaveType: Dispatch<SetStateAction<string|null>>;
+  unSavedFiles: FileItem[]|null;
+  setUnSavedFiles: Dispatch<SetStateAction<FileItem[]|null>>;
+  hasUnSavedChange: boolean;
+  setHasUnSavedChange: Dispatch<SetStateAction<boolean>>;
+  unSavedChangeCount: number;
+  setUnSavedChangeCount: Dispatch<SetStateAction<number>>;
   sessionDir: string;
   setSessionDir: Dispatch<SetStateAction<string>>;
   showRepoView: boolean;
@@ -36,9 +48,15 @@ export const EditorLayoutContextProvider: React.FC<{
 }> = ({ children }) => {
   const [editorOnlyView, setEditorOnlyView] = useState(false);
   const [editorInUse, setEditorInUse] = useState(false);
+  const [models, setModels] = useState<Map<string, any>>(new Map());
   const [sessionType, setSessionType] = useState("");
+  const [editorToolbarView, setEditorToolbarView] = useState(0);
   const [sessionDir, setSessionDir] = useState("");
-  const [openFiles, setOpenFiles] = useState<Array<FileItem>|null>([]);
+  const [openFiles, setOpenFiles] = useState<Array<OpenFileItem>|null>([]);
+  const [saveType, setSaveType] = useState<string|null>(null);
+  const [unSavedFiles, setUnSavedFiles] = useState<Array<FileItem>|null>([]);
+  const [hasUnSavedChange, setHasUnSavedChange] = useState(false);
+  const [unSavedChangeCount, setUnSavedChangeCount] = useState<number>(0);
   const [showRepoView, setShowRepoView] = useState(false);
   const [showSideBar, setShowSideBar] = useState(true);
 
@@ -54,12 +72,24 @@ export const EditorLayoutContextProvider: React.FC<{
         setEditorOnlyView,
         editorInUse,
         setEditorInUse,
+        models,
+        setModels,
+        editorToolbarView,
+        setEditorToolbarView,
         sessionType,
         setSessionType,
         sessionDir,
         setSessionDir,
         openFiles,
         setOpenFiles,
+        saveType,
+        setSaveType,
+        unSavedFiles,
+        setUnSavedFiles,
+        hasUnSavedChange,
+        setHasUnSavedChange,
+        unSavedChangeCount,
+        setUnSavedChangeCount,
         showSideBar,
         setShowSideBar,
         showRepoView,

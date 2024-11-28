@@ -6,14 +6,22 @@ import React from "react";
 
 function GitActions() {
   const { setEditorOnlyView, editorOnlyView } = useEditorLayoutContext();
-  const { curExView,setCurExView } = useExplorerContext();
+  const { curExView, setCurExView } = useExplorerContext();
   return (
     <div>
       <IconButton
         onClick={() => {
-          curExView == "GitActions" ? setEditorOnlyView(!editorOnlyView) : "";
-          setCurExView("GitActions");
-        }}
+          const isGitActions = curExView === "GitActions";
+        
+          if (isGitActions) {
+            setEditorOnlyView(!editorOnlyView);
+          } else {
+            setCurExView("GitActions");
+            if (editorOnlyView) {
+              setEditorOnlyView(false);
+            }
+          }
+        }}        
       >
         <TrackChanges />
       </IconButton>

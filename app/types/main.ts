@@ -6,5 +6,11 @@ export interface FileItem {
     content?: any
 }
 
+export interface OpenFileItem {
+    name: string;
+    path: string;
+    content?: any
+    unSaved: boolean
+}
 
   

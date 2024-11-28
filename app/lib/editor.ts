@@ -1,4 +1,5 @@
 import { FileItem } from "@/types/main";
+import { ifError } from "assert";
 import axios from "axios";
 import path from "path";
 
@@ -130,29 +131,63 @@ export const renameDirItem = (
   oldPath: string,
   newName: string
 ): FileItem => {
-  const item = findItemByPath(rootDir, oldPath);
+  // Clone the rootDir to avoid unintended side effects
+  const updatedRootDir = JSON.parse(JSON.stringify(rootDir));
+
+  const item = findItemByPath(updatedRootDir, oldPath);
 
   if (item) {
     const oldParentPath = item.path.substring(0, item.path.lastIndexOf("/"));
     const newPath = `${oldParentPath}/${newName}`;
 
+    // Update the folder's name and path
     item.name = newName;
     item.path = newPath;
+
+    // Recursively update the paths of children if it's a folder
+    if (item.children && item.children.length > 0) {
+      updateChildrenPaths(item, oldPath, newPath);
+    }
   }
 
-  return rootDir;
-}; 
+  return updatedRootDir;
+};
+
+// Helper function to recursively update children paths
+const updateChildrenPaths = (
+  parent: FileItem,
+  oldPath: string,
+  newPath: string
+) => {
+  parent?.children?.forEach((child) => {
+    // Update the path of the child
+    child.path = child.path.replace(oldPath, newPath);
+
+    // Recursively update paths if the child is a folder
+    if (child.children && child.children.length > 0) {
+      updateChildrenPaths(child, oldPath, newPath);
+    }
+  });
+};
+
 export const copyItemToDir = (
   rootDir: FileItem,
   srcPath: string,
   destDirPath: string
 ): FileItem => {
-  const srcItem = findItemByPath(rootDir, srcPath);
-  const destDir = findItemByPath(rootDir, destDirPath);
+  console.log(srcPath,destDirPath);
+  
+  // Get the source item and destination directory using the getSrcItemToCopy function
+  const srcItem = getSrcItemToCopy(rootDir, srcPath);
+  const destDir = getSrcItemToCopy(rootDir, destDirPath);
 
-  if (!srcItem) throw new Error(`Source item not found at path: ${srcPath}`);
-  if (!destDir || !destDir.isDirectory)
+  // Check if the source item and destination directory are found
+  if (!srcItem) {
+    throw new Error(`Source item not found at path: ${srcPath}`);
+  }
+  if (!destDir || !destDir.isDirectory) {
     throw new Error(`Destination directory not found at path: ${destDirPath}`);
+  }
 
   // Check if an item with the same name already exists in the destination directory
   if (destDir.children?.some((child) => child.name === srcItem.name)) {
@@ -161,18 +196,68 @@ export const copyItemToDir = (
     );
   }
 
-  // Deep clone the source item to avoid mutation
-  const copiedItem = JSON.parse(JSON.stringify(srcItem));
-  destDir.children = [...(destDir.children || []), copiedItem];
+  // Create a copy of the source item
+  const copiedItem = cloneItem(srcItem);
+
+  // Update the path of the copied item to reflect its new location
+  copiedItem.path = `${destDir.path}/${copiedItem.name}`;
+
+  // If the item is a directory, recursively rename its children's paths
+  const updatedItem = renameItemPathToMatchParent(destDir.path, copiedItem);
+
+  // Add the copied item to the destination directory
+  destDir.children = [...(destDir.children || []), updatedItem];
 
   return rootDir; // Return updated root directory structure
 };
+
+// Helper function to create a copy of the source item
+function cloneItem(item: FileItem): FileItem {
+  return {
+    ...item,
+    children: item.children ? item.children.map((child) => cloneItem(child)) : undefined,
+  };
+}
+
+// Recursive path renaming function for the copied item and its children
+function renameItemPathToMatchParent(parentPath: string, file: FileItem): FileItem {
+  const updatedPath = `${parentPath}/${file.name}`;
+
+  // Recursively process children if the file is a directory
+  const updatedChildren = file.isDirectory && file.children
+    ? file.children.map((child) => renameItemPathToMatchParent(updatedPath, child))
+    : undefined;
+
+  return {
+    ...file,
+    path: updatedPath,
+    children: updatedChildren || [],
+  };
+}
+
+// Helper function to get the item by its path
+function getSrcItemToCopy(rootDir: FileItem, srcPath: string): FileItem | undefined {
+  if (rootDir.path === srcPath) {
+    return rootDir;
+  }
+  
+  let foundItem;
+  rootDir.children?.forEach((child) => {
+    if (child.path === srcPath) {
+      foundItem = child;
+    }
+  });
+  return foundItem;
+}
 
 export const moveItemToDir = (
   rootDir: FileItem,
   srcPath: string,
   destDirPath: string
 ): FileItem => {
+  console.log(srcPath,destDirPath);
+  
+  // Find source and destination items
   const srcItem = findItemByPath(rootDir, srcPath);
   const destDir = findItemByPath(rootDir, destDirPath);
 
@@ -190,72 +275,43 @@ export const moveItemToDir = (
   // Remove the source item from its parent
   removeItemFromParent(rootDir, srcItem);
 
-  // Update the path of the moved item to reflect its new location
-  srcItem.path = `${destDir.path}/${srcItem.name}`;
-  destDir.children = [...(destDir.children || []), srcItem];
+  // Recursively update the path of the moved item and its children
+  const updatedSrcItem = renameItemPathToMatchParent(destDirPath, srcItem);
+
+  // Add the moved item to the destination directory
+  destDir.children = [...(destDir.children || []), updatedSrcItem];
 
   return rootDir; // Return updated root directory structure
 };
 
-// Helper function to find or create a directory based on the segments provided
-const findOrCreateDir = (
-  rootDir: FileItem,
-  destSegments: string[]
-): FileItem => {
-  let currentDir = rootDir;
+function findItemByPath(dir: FileItem, targetPath: string): FileItem | null {
+  if (dir.path === targetPath) {
+    return dir;
+  }
 
-  // Traverse or create directories based on the segments
-  destSegments.forEach((segment) => {
-    let nextDir = currentDir.children?.find((child) => child.name === segment);
-    if (!nextDir) {
-      nextDir = {
-        name: segment,
-        isDirectory: true,
-        path: `${currentDir.path}/${segment}`,
-        children: [],
-      };
-      currentDir.children = [...(currentDir.children || []), nextDir]; // Add new directory
+  for (const child of dir.children || []) {
+    const found = findItemByPath(child, targetPath);
+    if (found) return found;
+  }
+
+  return null;
+}
+
+
+
+// Helper function to remove the item from its parent directory
+function removeItemFromParent(rootDir: FileItem, itemToRemove: FileItem): void {
+  rootDir.children = (rootDir.children || []).filter(
+    (child) => child?.path !== itemToRemove.path
+  );
+
+  // If the item is a directory, remove it recursively from all child directories
+  rootDir.children?.forEach((child) => {
+    if (child.isDirectory && child.children) {
+      removeItemFromParent(child, itemToRemove);
     }
-    currentDir = nextDir; // Move deeper into the directory structure
   });
-
-  return currentDir;
-};
-
-// Helper function to remove item from its parent
-const removeItemFromParent = (rootDir: FileItem, item: FileItem) => {
-  const stack: FileItem[] = [rootDir];
-  while (stack.length > 0) {
-    const current = stack.pop();
-    if (current?.children) {
-      const index = current.children.findIndex(
-        (child) => child.path === item.path
-      );
-      if (index >= 0) {
-        current.children.splice(index, 1);
-        return;
-      }
-      current.children.forEach((child) => stack.push(child));
-    }
-  }
-};
-
-// Helper function to find item by its path
-const findItemByPath = (
-  rootDir: FileItem,
-  path: string
-): FileItem | undefined => {
-  const stack: FileItem[] = [rootDir];
-  while (stack.length > 0) {
-    const current = stack.pop();
-    if (current?.path === path) {
-      return current;
-    }
-
-    current?.children?.forEach((child) => stack.push(child));
-  }
-  return undefined;
-};
+}
 
 export const removeDirFromRoot = (
   rootDir: FileItem,

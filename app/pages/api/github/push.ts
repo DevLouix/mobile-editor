@@ -31,7 +31,7 @@ export default async function handler(
   }
 
   try {
-    // Verify the repository path exists
+    // Verify that the repository path exists
     if (!fs.existsSync(fullPath)) {
       return res
         .status(404)
@@ -40,31 +40,19 @@ export default async function handler(
 
     const token = session.accessToken as string;
 
-    // Add or update the origin remote
+    // Check and set the remote
     const remotes = await git.listRemotes({ fs, dir: fullPath });
     const originRemote = remotes.find((r) => r.remote === "origin");
     if (!originRemote || originRemote.url !== remote) {
+      // Add or update the origin remote
       if (originRemote) {
         await git.deleteRemote({ fs, dir: fullPath, remote: "origin" });
       }
       await git.addRemote({ fs, dir: fullPath, remote: "origin", url: remote });
+      console.log("Remote 'origin' set to:", remote);
+    } else {
+      console.log("Remote 'origin' is already correctly set.");
     }
-
-    // Add `.gitkeep` to empty directories
-    const ensureGitKeep = (directory: string) => {
-      const entries = fs.readdirSync(directory);
-      if (entries.length === 0) {
-        fs.writeFileSync(path.join(directory, ".gitkeep"), "");
-      } else {
-        for (const entry of entries) {
-          const entryPath = path.join(directory, entry);
-          if (fs.statSync(entryPath).isDirectory()) {
-            ensureGitKeep(entryPath);
-          }
-        }
-      }
-    };
-    ensureGitKeep(fullPath);
 
     // Check for uncommitted changes
     const status = await git.statusMatrix({ fs, dir: fullPath });
@@ -74,8 +62,18 @@ export default async function handler(
     );
 
     if (hasUncommittedChanges) {
-      // Stage all changes
+      console.log("Uncommitted changes detected. Preparing to stage and commit.");
+
+      // Stage all additions and modifications
       await git.add({ fs, dir: fullPath, filepath: "." });
+
+      // Explicitly stage deletions
+      for (const [filePath, , worktreeStatus] of status) {
+        if (worktreeStatus === 0) {
+          await git.remove({ fs, dir: fullPath, filepath: filePath });
+          console.log(`Deleted file staged: ${filePath}`);
+        }
+      }
 
       // Commit the changes
       await git.commit({
@@ -87,6 +85,9 @@ export default async function handler(
         },
         message: "Committing changes to push",
       });
+      console.log("Changes committed.");
+    } else {
+      console.log("No uncommitted changes to stage or commit.");
     }
 
     // Push to remote
@@ -97,7 +98,13 @@ export default async function handler(
       remote: "origin",
       ref: branch,
       onAuth: () => ({ username: "oauth2", password: token }),
+      onProgress: (progress) => {
+        console.log(
+          `Progress: ${progress.phase} ${progress.loaded}/${progress.total}`
+        );
+      },
     });
+    console.log("Changes pushed successfully.");
 
     return res
       .status(200)

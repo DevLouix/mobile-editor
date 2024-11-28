@@ -9,7 +9,7 @@ import React, {
 import { useEditorLayoutContext } from "./EditorLayoutContext";
 import { validate } from "uuid";
 import { buildVFSTree } from "@/lib/vfsBuild";
-import { FileItem } from "@/types/main";
+import { FileItem, OpenFileItem } from "@/types/main";
 import axios from "axios";
 
 // Define the shape of the context
@@ -33,8 +33,8 @@ interface ExplorerContextType {
   setVFS: Dispatch<SetStateAction<any[]>>;
   files: DirItem[];
   setFiles: Dispatch<SetStateAction<DirItem[]>>;
-  activeFile: FileItem;
-  setActiveFile: Dispatch<SetStateAction<FileItem>>;
+  activeOpenFile: OpenFileItem;
+  setActiveOpenFile: Dispatch<SetStateAction<OpenFileItem>>;
   fileContent: FileContent;
   setFileContent: Dispatch<SetStateAction<FileContent>>;
   curExView: string;
@@ -47,8 +47,10 @@ interface ExplorerContextType {
   setCreateNewFolder: Dispatch<SetStateAction<boolean>>;
   createNewFile: boolean;
   setCreateNewFile: Dispatch<SetStateAction<boolean>>;
-  activeFileIndex: number;
-  setActiveFileIndex: Dispatch<SetStateAction<number>>;
+  activeOpenFileIndex: number;
+  setActiveOpenFileIndex: Dispatch<SetStateAction<number>>;
+  closeActiveOpenFileIndex: number|null;
+  setCloseActiveOpenFileIndex: Dispatch<SetStateAction<number|null>>;
   rootDir: FileItem | null; //THE RAW DATA FROM CLOUD IS STORED IN THIS VAR
   setRootDir: Dispatch<SetStateAction<FileItem | null>>;
   rootFolder: RootFolder | null; //THE RAW DATA FROM CLOUD IS STORED IN THIS VAR
@@ -77,15 +79,16 @@ export const ExplorerContextProvider: React.FC<{
   const [fileContent, setFileContent] = useState<FileContent>(
     {} as unknown as FileContent
   );
-  const [activeFile, setActiveFile] = useState<FileItem>(
-    {} as unknown as FileItem
+  const [activeOpenFile, setActiveOpenFile] = useState<OpenFileItem>(
+    {} as unknown as OpenFileItem
   );
   const [curExView, setCurExView] = useState("");
   const [curExDir, setCurExDir] = useState("");
   const [refreshFiles, setRefreshFiles] = useState(false);
   const [createNewFolder, setCreateNewFolder] = useState(false);
   const [createNewFile, setCreateNewFile] = useState(false);
-  const [activeFileIndex, setActiveFileIndex] = useState(0);
+  const [activeOpenFileIndex, setActiveOpenFileIndex] = useState(0);
+  const [closeActiveOpenFileIndex, setCloseActiveOpenFileIndex] = useState<number|null>(null);
 
   // Fetch files from the server
   const fetchFiles = async (dirPath?: string) => {
@@ -153,14 +156,14 @@ export const ExplorerContextProvider: React.FC<{
   // toggle the selected file active in the ed
   useEffect(() => {
     //console.log(openFiles);
-    setActiveFileIndex(openFiles?.length! - 1);
+    //setActiveOpenFileIndex(openFiles?.length! - 1);
   }, [openFiles]);
 
   // sets file active
   useEffect(() => {
-    const file = openFiles![activeFileIndex];
-    setActiveFile(file);
-  }, [activeFileIndex, activeFile, openFiles]);
+    const file = openFiles![activeOpenFileIndex];
+    setActiveOpenFile(file);
+  }, [activeOpenFileIndex, activeOpenFile, openFiles]);
 
   // async function refreshEx() {
   //   const res = await axios.post("/api/explorer", {
@@ -197,12 +200,14 @@ export const ExplorerContextProvider: React.FC<{
         setFiles,
         VFS,
         setVFS,
-        activeFile,
-        setActiveFile,
+        activeOpenFile,
+        setActiveOpenFile,
         fileContent,
         setFileContent,
-        activeFileIndex,
-        setActiveFileIndex,
+        activeOpenFileIndex,
+        setActiveOpenFileIndex,
+        closeActiveOpenFileIndex,
+        setCloseActiveOpenFileIndex,
         fetchFiles,
         createDirectory,
       }}

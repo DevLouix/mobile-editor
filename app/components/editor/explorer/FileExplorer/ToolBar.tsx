@@ -44,7 +44,7 @@ function ToolBar({folderActive,toggleActive}:{folderActive:boolean,toggleActive:
       >
         <Folder sx={{ height: "20px", width: "20px", color: "white" }} />
       </IconButton>
-      <IconButton
+      {/* <IconButton
         onClick={async () => {
           const res = await axios.post("/api/explorer", {
             action: "readDir",
@@ -57,7 +57,7 @@ function ToolBar({folderActive,toggleActive}:{folderActive:boolean,toggleActive:
         }}
       >
         <Refresh sx={{ height: "20px", width: "20px", color: "white" }} />
-      </IconButton>
+      </IconButton> */}
     </Box>
   );
 }

@@ -11,8 +11,12 @@ import React, {
   ReactElement,
   SetStateAction,
   Dispatch,
+  useMemo,
 } from "react";
 import { useExplorerContext } from "./ExplorerContext";
+import { useEditorLayoutContext } from "./EditorLayoutContext";
+import { useMonaco } from "@monaco-editor/react";
+import { copyMonacoModel } from "@/lib/monaco";
 
 interface FileBrowserContextType {
   rename: boolean;
@@ -43,20 +47,22 @@ interface FileBrowserContextType {
   setFolderVisibility: React.Dispatch<
     SetStateAction<{ [key: string]: boolean }>
   >;
-  contextMenu:{
+  contextMenu: {
     mouseX: number;
     mouseY: number;
-  } | null,
-  setContextMenu:Dispatch<SetStateAction<{
-    mouseX: number;
-    mouseY: number;
-  } | null>>
+  } | null;
+  setContextMenu: Dispatch<
+    SetStateAction<{
+      mouseX: number;
+      mouseY: number;
+    } | null>
+  >;
   toggleSubFolder: (path: string) => void;
   handleRename: () => void;
   handleCopy: () => void;
   handleMove: () => void;
   handlePaste: () => void;
-  handleContextMenu:(e:React.MouseEvent,path:string)=>void
+  handleContextMenu: (e: React.MouseEvent, path: string) => void;
 }
 
 const FileBrowserContext = createContext<FileBrowserContextType | undefined>(
@@ -86,14 +92,16 @@ export const FileBrowserContextProvider: React.FC<{ children: ReactNode }> = ({
   } | null>(null);
 
   const [fileType, setFileType] = useState<string>("Folder");
-  const { rootDir, setRootDir } = useExplorerContext();
+  const monaco = useMonaco();
+  const { models, setModels,setOpenFiles} = useEditorLayoutContext();
+  const { rootDir, setRootDir,activeOpenFile } = useExplorerContext();
 
   // context menu
-  const handleContextMenu = (event: React.MouseEvent,path:string) => {
-    event.preventDefault()
-   // setActiveFilePath(path)
+  const handleContextMenu = (event: React.MouseEvent, path: string) => {
+    event.preventDefault();
+    // setActiveFilePath(path)
     console.log(path);
-    
+
     setContextMenu(
       contextMenu === null
         ? {
@@ -149,27 +157,39 @@ export const FileBrowserContextProvider: React.FC<{ children: ReactNode }> = ({
 
   async function handleCopy() {
     console.log("copy");
-    const res = await axios.post("api/explorer/copy",{
+    const res = await axios.post("api/explorer/copy", {
       itemPath: copyPath,
-      newParentPath: activeFilePath
-    })
+      newParentPath: activeFilePath,
+    });
     console.log(res);
-    if (res.status==200) {
-      setRootDir(copyItemToDir(rootDir!,res.data.itemPath,res.data.newParentPath))
+    if (res.status == 200) {
+      copyMonacoModel(
+        monaco!,
+        rootDir!,
+        res.data.itemPath,
+        res.data.newParentPath,
+        setModels,
+        setOpenFiles,
+        activeOpenFile
+      );
+      setRootDir(
+        copyItemToDir(rootDir!, res.data.itemPath, res.data.newParentPath)
+      );
     }
-    
+
+    setCopyPath(null);
     setPasteContext(false);
   }
 
   async function handleMove() {
     console.log("move");
-    const res = await axios.post("api/explorer/move",{
+    const res = await axios.post("api/explorer/move", {
       itemPath: movePath,
-      newParentPath: activeFilePath
-    })
+      newParentPath: activeFilePath,
+    });
     console.log(res);
-    if (res.status==200) {
-      setRootDir(moveItemToDir(rootDir!,res.data.itemPath,res.data.newParentPath))
+    if (res.status == 200) {
+      setRootDir(moveItemToDir(rootDir!, res.data.prevPath, res.data.newPath));
     }
     setPasteContext(false);
   }

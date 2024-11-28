@@ -1,10 +1,11 @@
 // context/ModalContext.tsx
 import Modal from "@/components/Modal";
-import React, { createContext, useContext, useState, ReactNode, ReactElement } from "react";
+import React, { createContext, useContext, useState, ReactNode, ReactElement, Dispatch, SetStateAction } from "react";
 
 interface ModalContextType {
   isOpen: boolean;
   content: ReactNode;
+  setContent:Dispatch<SetStateAction<ReactNode>>
   openModal: (content: ReactElement) => void;
   closeModal: () => void;
 }
@@ -26,7 +27,7 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   return (
-    <ModalContext.Provider value={{ isOpen, content, openModal, closeModal }}>
+    <ModalContext.Provider value={{ isOpen, content,setContent, openModal, closeModal }}>
       {children}
       <Modal/>
     </ModalContext.Provider>

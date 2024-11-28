@@ -10,8 +10,16 @@ function FilesBtn() {
   return (
     <IconButton
       onClick={() => {
-        setCurExView("");
-        curExView == "" ? setEditorOnlyView(!editorOnlyView) : "";
+        const isFiles = curExView === "";
+
+        if (isFiles) {
+          setEditorOnlyView(!editorOnlyView);
+        } else {
+          setCurExView("");
+          if (editorOnlyView) {
+            setEditorOnlyView(false);
+          }
+        }
       }}
     >
       <FileCopy />

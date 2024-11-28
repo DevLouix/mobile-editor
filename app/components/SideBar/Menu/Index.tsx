@@ -1,11 +1,12 @@
 import MenuIcon from "@mui/icons-material/Menu";
-import { IconButton, MenuItem, Menu } from "@mui/material";
+import { IconButton, MenuItem, Menu, Box } from "@mui/material";
 import React from "react";
 import File from "./Items/File";
 import GitRepository from "./Items/GitRepo/Index";
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
 import Close from "./Items/CloseSession";
 import LocalStorage from "./Items/LocalStorage";
+import Save from "./Items/Save";
 
 function MenuButton() {
   const { editorInUse } = useEditorLayoutContext();
@@ -52,7 +53,7 @@ function MenuButton() {
          </>
         ) : (
           <>
-            
+            <Box><Save/></Box>
             <MenuItem onClick={handleClose}>
               <Close />
             </MenuItem>

@@ -9,11 +9,6 @@ const Modal: React.FC = () => {
   return (
     <Dialog open={isOpen} onClose={closeModal}>
       <DialogContent>{content}</DialogContent>
-      <DialogActions>
-        <Button onClick={closeModal} color="primary">
-          Close
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 };
