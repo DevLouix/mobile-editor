@@ -175,11 +175,11 @@ export const copyItemToDir = (
   srcPath: string,
   destDirPath: string
 ): FileItem => {
-  console.log(srcPath,destDirPath);
+  console.log(srcPath,destDirPath,rootDir);
   
   // Get the source item and destination directory using the getSrcItemToCopy function
-  const srcItem = getSrcItemToCopy(rootDir, srcPath);
-  const destDir = getSrcItemToCopy(rootDir, destDirPath);
+  const srcItem = findItemByPath(rootDir, srcPath);
+  const destDir = findItemByPath(rootDir, destDirPath);
 
   // Check if the source item and destination directory are found
   if (!srcItem) {
@@ -235,20 +235,6 @@ function renameItemPathToMatchParent(parentPath: string, file: FileItem): FileIt
   };
 }
 
-// Helper function to get the item by its path
-function getSrcItemToCopy(rootDir: FileItem, srcPath: string): FileItem | undefined {
-  if (rootDir.path === srcPath) {
-    return rootDir;
-  }
-  
-  let foundItem;
-  rootDir.children?.forEach((child) => {
-    if (child.path === srcPath) {
-      foundItem = child;
-    }
-  });
-  return foundItem;
-}
 
 export const moveItemToDir = (
   rootDir: FileItem,

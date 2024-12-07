@@ -6,7 +6,7 @@ import { SessionProvider } from "next-auth/react";
 import type { AppProps } from "next/app";
 import "../styles/monaco.css";
 import { FileBrowserContextProvider } from "@/contexts/FileBrowserContext";
-import { GitContextProvider } from "@/contexts/Explorer /GitContext";
+import { GitContextProvider } from "@/contexts/Explorer/GitContext";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

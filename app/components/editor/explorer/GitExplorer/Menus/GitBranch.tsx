@@ -1,4 +1,4 @@
-import { useGitContext } from "@/contexts/Explorer /GitContext";
+import { useGitContext } from "@/contexts/Explorer/GitContext";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
 import { GitHubBranch } from "@/types/github";
 import { BrandingWatermark, X } from "@mui/icons-material";

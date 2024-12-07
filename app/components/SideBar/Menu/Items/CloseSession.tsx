@@ -6,7 +6,7 @@ import { Box, Typography } from "@mui/material";
 import axios from "axios";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
 import { useEditorLayoutContext } from "@/contexts/EditorLayoutContext";
-import { useGitContext } from "@/contexts/Explorer /GitContext";
+import { useGitContext } from "@/contexts/Explorer/GitContext";
 
 export default function Close() {
   const { rootDir, setRootDir } = useExplorerContext();

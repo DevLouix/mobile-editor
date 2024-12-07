@@ -1,4 +1,4 @@
-import { useGitContext } from "@/contexts/Explorer /GitContext";
+import { useGitContext } from "@/contexts/Explorer/GitContext";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
 import { Button, CircularProgress } from "@mui/material";
 import axios from "axios";

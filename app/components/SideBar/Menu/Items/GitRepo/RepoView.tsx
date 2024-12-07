@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import GitAuthView from "./AuthView";
 import { cloneRepo } from "@/lib/gitClient";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
-import { useGitContext } from "@/contexts/Explorer /GitContext";
+import { useGitContext } from "@/contexts/Explorer/GitContext";
 
 const Repositories: React.FC = () => {
   const { showRepoView, setSessionType, setSessionDir } =

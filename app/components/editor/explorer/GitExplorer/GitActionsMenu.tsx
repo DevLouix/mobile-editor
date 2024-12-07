@@ -17,7 +17,7 @@ import {
 import GitBranch from "./Menus/GitBranch";
 import GitCommit from "./Menus/GitCommit";
 import GitPush from "./Menus/GitPush";
-import { useGitContext } from "@/contexts/Explorer /GitContext";
+import { useGitContext } from "@/contexts/Explorer/GitContext";
 import GitInit from "./Menus/GitInit";
 import axios from "axios";
 import { useExplorerContext } from "@/contexts/ExplorerContext";
