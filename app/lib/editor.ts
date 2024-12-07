@@ -254,9 +254,7 @@ export const moveItemToDir = (
   rootDir: FileItem,
   srcPath: string,
   destDirPath: string
-): FileItem => {
-  console.log(srcPath,destDirPath);
-  
+): FileItem => {  
   // Find source and destination items
   const srcItem = findItemByPath(rootDir, srcPath);
   const destDir = findItemByPath(rootDir, destDirPath);
@@ -285,16 +283,20 @@ export const moveItemToDir = (
 };
 
 function findItemByPath(dir: FileItem, targetPath: string): FileItem | null {
+  console.log(dir,targetPath,"finditempath");
+
   if (dir.path === targetPath) {
-    return dir;
+    return dir; // Base case: Found the target path
   }
 
   for (const child of dir.children || []) {
-    const found = findItemByPath(child, targetPath);
-    if (found) return found;
+    const found = findItemByPath(child, targetPath); // Recursively search in children
+    if (found) {
+      return found; // Immediately return if found
+    }
   }
 
-  return null;
+  return null; // Return null if not found
 }
 
 

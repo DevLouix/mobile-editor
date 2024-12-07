@@ -9,6 +9,7 @@ import { Slide, toast } from "react-toastify";
 import { Done } from "@mui/icons-material";
 import { toastErrMini, toastSuccessMini } from "@/lib/toasts";
 import { useModal } from "@/contexts/ModalContext";
+import { getFileLang } from "@/lib/monaco";
 
 const CodeBox = () => {
   const monaco = useMonaco();
@@ -46,6 +47,8 @@ const CodeBox = () => {
 
   useEffect(() => {
     switchFile(activeOpenFile?.path);
+    console.log(activeOpenFile);
+    
   }, [activeOpenFile]);
 
   // creates mofel for cur file
@@ -211,6 +214,8 @@ const CodeBox = () => {
       editorRef.current.setModel(model); // Switch to the new model
       setCurrentFilePath(filePath); // Update the current file path
     }
+    console.log(filePath,model,"from switch");
+    
   };
 
   function getModelContent(filePath: string) {
@@ -267,45 +272,6 @@ const CodeBox = () => {
     return "// Comment syntax not available for this language";
   }
 
-  // Determine the language of the file based on its extension
-  function getFileLang(name: string) {
-    const extension = name?.split(".").pop()?.toLowerCase();
-    const languageMap: Record<string, string> = {
-      js: "javascript",
-      ts: "typescript",
-      jsx: "javascript",
-      tsx: "typescript",
-      html: "html",
-      css: "css",
-      scss: "scss",
-      less: "less",
-      java: "java",
-      py: "python",
-      rb: "ruby",
-      php: "php",
-      go: "go",
-      c: "c",
-      cpp: "cpp",
-      rust: "rust",
-      swift: "swift",
-      kotlin: "kotlin",
-      sql: "sql",
-      md: "markdown",
-      json: "json",
-      yaml: "yaml",
-      xml: "xml",
-      txt: "plain text",
-      csv: "csv",
-      exe: "executable",
-      pdf: "pdf",
-      png: "png image",
-      jpg: "jpg image",
-      gif: "gif image",
-      mp4: "mp4 video",
-      mp3: "mp3 audio",
-    };
-    return extension ? languageMap[extension] || "unknown" : "unknown";
-  }
 
   useEffect(() => {
     if (editorRef.current && openFiles?.length==0) {

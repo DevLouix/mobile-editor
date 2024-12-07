@@ -16,7 +16,7 @@ import React, {
 import { useExplorerContext } from "./ExplorerContext";
 import { useEditorLayoutContext } from "./EditorLayoutContext";
 import { useMonaco } from "@monaco-editor/react";
-import { copyMonacoModel } from "@/lib/monaco";
+import { copyMonacoModel, moveMonacoModel } from "@/lib/monaco";
 
 interface FileBrowserContextType {
   rename: boolean;
@@ -93,8 +93,8 @@ export const FileBrowserContextProvider: React.FC<{ children: ReactNode }> = ({
 
   const [fileType, setFileType] = useState<string>("Folder");
   const monaco = useMonaco();
-  const { models, setModels,setOpenFiles} = useEditorLayoutContext();
-  const { rootDir, setRootDir,activeOpenFile } = useExplorerContext();
+  const { models, setModels, setOpenFiles } = useEditorLayoutContext();
+  const { rootDir, setRootDir, activeOpenFile } = useExplorerContext();
 
   // context menu
   const handleContextMenu = (event: React.MouseEvent, path: string) => {
@@ -190,6 +190,7 @@ export const FileBrowserContextProvider: React.FC<{ children: ReactNode }> = ({
     console.log(res);
     if (res.status == 200) {
       setRootDir(moveItemToDir(rootDir!, res.data.prevPath, res.data.newPath));
+      moveMonacoModel(monaco!, rootDir!, res.data.prevPath, res.data.newPath);
     }
     setPasteContext(false);
   }
